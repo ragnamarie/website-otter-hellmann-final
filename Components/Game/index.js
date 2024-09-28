@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 export default function Game() {
   const canvasRef = useRef(null);
-  const ballRef = useRef({ x: 50, y: 50, vx: 2, vy: 2 });
+  const ballRef = useRef({ x: 50, y: 50, vx: 5, vy: 5 });
   const platformRef = useRef({ x: 100 });
   const ballRadius = 40;
   const platformWidth = 200;
@@ -12,10 +12,10 @@ export default function Game() {
 
   function handleKeyDown(e) {
     if (e.key === "ArrowLeft") {
-      platformRef.current.x = Math.max(platformRef.current.x - 20, 0);
+      platformRef.current.x = Math.max(platformRef.current.x - 75, 0);
     } else if (e.key === "ArrowRight") {
       platformRef.current.x = Math.min(
-        platformRef.current.x + 20,
+        platformRef.current.x + 75,
         canvasRef.current.width - platformWidth
       );
     }
@@ -77,7 +77,7 @@ export default function Game() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         ballRef.current.x = canvas.width / 2; // Reset ball to center
-        ballRef.current.y = canvas.height / 2;
+        ballRef.current.y = canvas.height / 4;
         platformRef.current.x = (canvas.width - platformWidth) / 2;
       }
     };
@@ -99,17 +99,8 @@ export default function Game() {
 
   useEffect(() => {
     if (gameOver) {
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext("2d");
-
-      ctx.font = "18px Arial";
-      ctx.fillStyle = "black";
-      ctx.textAlign = "center";
-      ctx.fillText(
-        "Game Over, please refresh the page to start again",
-        canvas.width / 2,
-        canvas.height / 2
-      );
+      // Trigger a page refresh when game is over
+      window.location.reload();
     }
   }, [gameOver]);
 
