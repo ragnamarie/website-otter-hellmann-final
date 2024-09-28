@@ -29,7 +29,10 @@ export default createGlobalStyle`
   /* if any layout stuff is weird delete this part */
   
   body {
-   
+  font-family: "Inter", sans-serif;
+  font-optical-sizing: auto;
+
+  font-style: normal;
   }
 
   main {
@@ -40,6 +43,8 @@ export default createGlobalStyle`
 
   } 
 
-  
+  h1 {
+  font-weight: 400;
+  } 
 
 `;

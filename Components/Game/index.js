@@ -5,10 +5,12 @@ export default function Game() {
   const ballRef = useRef({ x: 50, y: 50, vx: 5, vy: 5 });
   const platformRef = useRef({ x: 100 });
   const ballRadius = 40;
-  const platformWidth = 200;
+  const platformWidth = 225;
   const platformHeight = 15;
 
   const [gameOver, setGameOver] = useState(false);
+  const [hitCount, setHitCount] = useState(0); // Track number of platform hits
+  const letters = "SPACE"; // Word to reveal
 
   function handleKeyDown(e) {
     if (e.key === "ArrowLeft") {
@@ -52,6 +54,9 @@ export default function Game() {
       newBall.x <= platformX + platformWidth
     ) {
       newBall.vy *= -1;
+
+      // Increment hit count when the ball hits the platform
+      setHitCount((prevCount) => Math.min(prevCount + 1, letters.length));
     } else if (newBall.y + ballRadius > canvas.height) {
       setGameOver(true);
       return;
@@ -104,5 +109,31 @@ export default function Game() {
     }
   }, [gameOver]);
 
-  return <canvas ref={canvasRef} />;
+  // Function to render the letters based on hitCount
+  const renderLetters = () => {
+    if (hitCount > 0) {
+      return <h1>{letters.substring(0, hitCount)}</h1>;
+    }
+    return null;
+  };
+
+  return (
+    <div style={{ position: "relative", textAlign: "center" }}>
+      <canvas ref={canvasRef} />
+      {/* Render letters based on hitCount */}
+      <div
+        style={{
+          fontSize: "80px",
+          color: "#f6f6f6",
+          letterSpacing: "30px",
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+        }}
+      >
+        {renderLetters()}
+      </div>
+    </div>
+  );
 }
