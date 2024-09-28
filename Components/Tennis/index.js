@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-export default function Game() {
+export default function Tennis() {
   const canvasRef = useRef(null);
   const ballRef = useRef({ x: 50, y: 50, vx: 5, vy: 5 });
   const platformRef = useRef({ x: 100 });
