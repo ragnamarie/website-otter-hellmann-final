@@ -4,11 +4,10 @@ export default function Game() {
   const canvasRef = useRef(null);
   const ballRef = useRef({ x: 50, y: 50, vx: 2, vy: 2 });
   const platformRef = useRef({ x: 100 });
-  const ballRadius = 7;
-  const platformWidth = 75;
-  const platformHeight = 5;
+  const ballRadius = 40;
+  const platformWidth = 200;
+  const platformHeight = 15;
 
-  // State to track if the game is over
   const [gameOver, setGameOver] = useState(false);
 
   function handleKeyDown(e) {
@@ -27,7 +26,7 @@ export default function Game() {
     const ctx = canvas.getContext("2d");
 
     // Set background color
-    ctx.fillStyle = "#8ACE00"; // brat background
+    ctx.fillStyle = "#e0ff9e";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Update ball position
@@ -45,43 +44,56 @@ export default function Game() {
 
     // Check for collision with the platform
     const platformX = platformRef.current.x;
-    const platformY = canvas.height - platformHeight;
+    const platformY = canvas.height - platformHeight - 100;
 
     if (
-      newBall.y + ballRadius >= platformY && // Ball is at the platform level
-      newBall.x >= platformX && // Ball is within the platform's left edge
-      newBall.x <= platformX + platformWidth // Ball is within the platform's right edge
+      newBall.y + ballRadius >= platformY &&
+      newBall.x >= platformX &&
+      newBall.x <= platformX + platformWidth
     ) {
-      newBall.vy *= -1; // Bounce the ball
+      newBall.vy *= -1;
     } else if (newBall.y + ballRadius > canvas.height) {
-      // Ball missed the platform and is "gone"
-      setGameOver(true); // Set game over state
-      return; // Stop the game loop
+      setGameOver(true);
+      return;
     }
 
     // Draw ball
-    ctx.fillStyle = "black"; // black ball
+    ctx.fillStyle = "#f6f6f6";
     ctx.beginPath();
     ctx.arc(newBall.x, newBall.y, ballRadius, 0, Math.PI * 2);
     ctx.fill();
 
     // Draw platform
-    ctx.fillStyle = "black"; // black platform
+    ctx.fillStyle = "#f6f6f6";
     ctx.fillRect(platformX, platformY, platformWidth, platformHeight);
 
-    // Continue the game loop
     requestAnimationFrame(updateGame);
   }
 
   useEffect(() => {
+    const resizeCanvas = () => {
+      const canvas = canvasRef.current;
+      if (canvas) {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        ballRef.current.x = canvas.width / 2; // Reset ball to center
+        ballRef.current.y = canvas.height / 2;
+        platformRef.current.x = (canvas.width - platformWidth) / 2;
+      }
+    };
+
+    resizeCanvas(); // Set initial canvas size
+
     if (canvasRef.current && !gameOver) {
       requestAnimationFrame(updateGame);
       window.addEventListener("keydown", handleKeyDown);
+      window.addEventListener("resize", resizeCanvas); // Update on window resize
     }
 
-    // Cleanup the event listener on component unmount
+    // Cleanup event listeners
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("resize", resizeCanvas);
     };
   }, [gameOver]);
 
@@ -90,7 +102,6 @@ export default function Game() {
       const canvas = canvasRef.current;
       const ctx = canvas.getContext("2d");
 
-      // Display "Game Over" message
       ctx.font = "18px Arial";
       ctx.fillStyle = "black";
       ctx.textAlign = "center";
@@ -102,5 +113,5 @@ export default function Game() {
     }
   }, [gameOver]);
 
-  return <canvas ref={canvasRef} width="500" height="400" />;
+  return <canvas ref={canvasRef} />;
 }
