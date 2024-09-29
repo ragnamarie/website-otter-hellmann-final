@@ -16,7 +16,6 @@ export default createGlobalStyle`
   }
 
   header {
-
   }
 
   /* if any layout stuff is weird delete this part */
@@ -36,11 +35,9 @@ export default createGlobalStyle`
   }
 
   main {
-
   }
 
   footer {
-
   } 
 
   h1 {
