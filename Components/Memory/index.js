@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import styled from "styled-components";
 
 const imageArray = [
   "1.jpg",
@@ -21,6 +22,58 @@ const imageArray = [
   "9.jpg", // Match for 9.jpg
 ];
 
+const Container = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #fec9d1;
+`;
+
+const Grid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 50px;
+  width: 80vw;
+  justify-content: center;
+
+  @media (max-width: 1100px) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 25px;
+  }
+`;
+
+const Square = styled.div`
+  position: relative;
+  width: 120px;
+  height: 120px;
+  cursor: pointer;
+  flex-shrink: 0;
+
+  @media (max-width: 750px) {
+    width: 80px; // Width when screen is smaller than 700px
+    height: 80px; // Height when screen is smaller than 700px
+  }
+`;
+
+const Background = styled.div`
+  background-color: ${(props) =>
+    props.isMatched ? "#fec9d1" : props.isClicked ? "transparent" : "red"};
+  width: 100%;
+  height: 100%;
+`;
+
+const Image = styled.img`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+`;
+
 export default function Memory() {
   const [clicked, setClicked] = useState(Array(18).fill(false));
   const [matched, setMatched] = useState(Array(18).fill(false));
@@ -40,7 +93,6 @@ export default function Memory() {
       const [firstIndex, secondIndex] = selectedIndices;
 
       if (imageArray[firstIndex] === imageArray[secondIndex]) {
-        // If a match is found, display images first
         setTimeout(() => {
           const newMatched = [...matched];
           newMatched[firstIndex] = true;
@@ -61,65 +113,17 @@ export default function Memory() {
   }, [selectedIndices]);
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        height: "100vh",
-        backgroundColor: "#fec9d1",
-      }}
-    >
-      <div
-        style={{
-          display: "grid", // Use grid for a fixed layout
-          gridTemplateColumns: "repeat(6, 1fr)", // 6 columns
-          gap: "40px", // Space between squares
-          width: "80vw", // Adjust based on your tile size and number (6 columns * 120px + gap)
-          maxWidth: "900px",
-          justifyContent: "center", // Center the grid horizontally
-        }}
-      >
+    <Container>
+      <Grid>
         {imageArray.map((image, index) => (
-          <div
-            key={index}
-            style={{
-              position: "relative",
-              width: "100%", // Use 100% to fill the grid cell
-              aspectRatio: "1 / 1", // Maintain a square aspect ratio
-              cursor: "pointer",
-            }}
-            onClick={() => handleSquareClick(index)}
-          >
-            <div
-              style={{
-                backgroundColor: matched[index]
-                  ? "#fec9d1" // Change to "#fec9d1" if matched
-                  : clicked[index]
-                  ? "transparent"
-                  : "red",
-                width: "100%",
-                height: "100%",
-              }}
-            />
+          <Square key={index} onClick={() => handleSquareClick(index)}>
+            <Background isMatched={matched[index]} isClicked={clicked[index]} />
             {clicked[index] && !matched[index] && (
-              <img
-                src={image}
-                alt={`Image ${index + 1}`}
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                }}
-              />
+              <Image src={image} alt={`Image ${index + 1}`} />
             )}
-          </div>
+          </Square>
         ))}
-      </div>
-    </div>
+      </Grid>
+    </Container>
   );
 }
