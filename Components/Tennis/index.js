@@ -1,4 +1,17 @@
 import { useEffect, useRef, useState } from "react";
+import styled from "styled-components";
+
+const LetterDisplay = styled.div`
+  font-size: 80px;
+  color: #f6f6f6;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  @media (max-width: 750px) {
+    font-size: 20px;
+`;
 
 export default function Tennis() {
   const canvasRef = useRef(null);
@@ -10,7 +23,7 @@ export default function Tennis() {
 
   const [gameOver, setGameOver] = useState(false);
   const [hitCount, setHitCount] = useState(0); // Track number of platform hits
-  const letters = "SPACE"; // Word to reveal
+  const letters = "S P A C E"; // Word to reveal
 
   function handleKeyDown(e) {
     if (e.key === "ArrowLeft") {
@@ -56,7 +69,7 @@ export default function Tennis() {
       newBall.vy *= -1;
 
       // Increment hit count when the ball hits the platform
-      setHitCount((prevCount) => Math.min(prevCount + 1, letters.length));
+      setHitCount((prevCount) => Math.min(prevCount + 2, letters.length));
     } else if (newBall.y + ballRadius > canvas.height) {
       setGameOver(true);
       return;
@@ -121,19 +134,7 @@ export default function Tennis() {
     <div style={{ position: "relative", textAlign: "center" }}>
       <canvas ref={canvasRef} />
       {/* Render letters based on hitCount */}
-      <div
-        style={{
-          fontSize: "80px",
-          color: "#f6f6f6",
-          letterSpacing: "30px",
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-        }}
-      >
-        {renderLetters()}
-      </div>
+      <LetterDisplay>{renderLetters()}</LetterDisplay>
     </div>
   );
 }
