@@ -11,6 +11,7 @@ const LetterDisplay = styled.div`
 
   @media (max-width: 750px) {
     font-size: 20px;
+  }
 `;
 
 export default function Tennis() {
@@ -21,7 +22,6 @@ export default function Tennis() {
   const platformWidth = 225;
   const platformHeight = 15;
 
-  const [gameOver, setGameOver] = useState(false);
   const [hitCount, setHitCount] = useState(0); // Track number of platform hits
   const letters = "S P A C E"; // Word to reveal
 
@@ -51,10 +51,10 @@ export default function Tennis() {
 
     // Check for collisions with walls (left, right, top)
     if (newBall.x - ballRadius <= 0 || newBall.x + ballRadius >= canvas.width) {
-      newBall.vx *= -1;
+      newBall.vx *= -1; // Reverse direction on horizontal walls
     }
     if (newBall.y - ballRadius <= 0) {
-      newBall.vy *= -1;
+      newBall.vy *= -1; // Reverse direction on top wall
     }
 
     // Check for collision with the platform
@@ -70,9 +70,10 @@ export default function Tennis() {
 
       // Increment hit count when the ball hits the platform
       setHitCount((prevCount) => Math.min(prevCount + 2, letters.length));
-    } else if (newBall.y + ballRadius > canvas.height) {
-      setGameOver(true);
-      return;
+    }
+    // Reverse direction if the ball hits the bottom of the canvas
+    else if (newBall.y + ballRadius > canvas.height) {
+      newBall.vy *= -1;
     }
 
     // Draw ball
@@ -102,7 +103,7 @@ export default function Tennis() {
 
     resizeCanvas(); // Set initial canvas size
 
-    if (canvasRef.current && !gameOver) {
+    if (canvasRef.current) {
       requestAnimationFrame(updateGame);
       window.addEventListener("keydown", handleKeyDown);
       window.addEventListener("resize", resizeCanvas); // Update on window resize
@@ -113,14 +114,7 @@ export default function Tennis() {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("resize", resizeCanvas);
     };
-  }, [gameOver]);
-
-  useEffect(() => {
-    if (gameOver) {
-      // Trigger a page refresh when game is over
-      window.location.reload();
-    }
-  }, [gameOver]);
+  }, []);
 
   // Function to render the letters based on hitCount
   const renderLetters = () => {
