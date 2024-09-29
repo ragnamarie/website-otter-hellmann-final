@@ -28,10 +28,9 @@ export default createGlobalStyle`
   /* if any layout stuff is weird delete this part */
   
   body {
-  font-family: "Inter", sans-serif;
-  font-optical-sizing: auto;
-
-  font-style: normal;
+    font-family: "Inter", sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
   }
 
   main {
@@ -40,8 +39,19 @@ export default createGlobalStyle`
   footer {
   } 
 
+  li {
+    list-style-type: none;
+    font-weight: 400;
+    font-size: 64px;
+  }
+
+  a {
+    text-decoration: none;
+    color: black;
+  }
+
   h1 {
-  font-weight: 400;
+    font-weight: 400;
   } 
 
 `;
