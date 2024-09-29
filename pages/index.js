@@ -1,5 +1,17 @@
-import Tennis from "@/Components/Tennis";
+import Link from "next/link";
 
 export default function HomePage() {
-  return <Tennis />;
+  return (
+    <>
+      <li>
+        <a href="/tennis">TENNIS</a>
+      </li>
+      <li>
+        <a href="/memory">MEMORY</a>
+      </li>
+      <li>
+        <a href="/breathing">BREATHING</a>
+      </li>
+    </>
+  );
 }
