@@ -24,6 +24,7 @@ export default function Tennis() {
   const platformHeight = 15;
 
   const [hitCount, setHitCount] = useState(0); // Track number of platform hits
+  const [lettersVisible, setLettersVisible] = useState(true); // Track visibility of letters
   const letters = "THE   ART   OF    BEING HUMAN      "; // Word to reveal
   const hitCountRef = useRef(0); // Store hitCount using ref
 
@@ -92,7 +93,7 @@ export default function Tennis() {
       const dy = centerY - newBall.y;
 
       // Calculate a step size to move towards the center
-      const speed = 0.05; // Adjust speed for smoother movement
+      const speed = 0.03; // Adjust speed for smoother movement
       newBall.vx = dx * speed;
       newBall.vy = dy * speed;
 
@@ -103,6 +104,11 @@ export default function Tennis() {
         newBall.vx = 0;
         newBall.vy = 0;
       }
+
+      // Hide letters after a few seconds
+      setTimeout(() => {
+        setLettersVisible(false); // Hide letters after 1 seconds
+      }, 1000); // 2-second delay
     }
 
     // Draw ball
@@ -147,7 +153,7 @@ export default function Tennis() {
 
   // Function to render the letters based on hitCount
   const renderLetters = () => {
-    if (hitCount > 0) {
+    if (hitCount > 0 && lettersVisible) {
       return <h1>{letters.substring(0, hitCount)}</h1>;
     }
     return null;
