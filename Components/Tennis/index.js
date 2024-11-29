@@ -24,8 +24,9 @@ export default function Tennis() {
   const platformHeight = 15;
 
   const [hitCount, setHitCount] = useState(0); // Track number of platform hits
+  const [lettersVisible, setLettersVisible] = useState(true); // Track visibility of letters
   const letters = "THE   ART   OF    BEING HUMAN      "; // Word to reveal
-  console.log(hitCount);
+  const hitCountRef = useRef(0); // Store hitCount using ref
 
   function handleKeyDown(e) {
     if (e.key === "ArrowLeft") {
@@ -71,15 +72,47 @@ export default function Tennis() {
       newBall.vy *= -1;
 
       // Increment hit count when the ball hits the platform
-      setHitCount((prevCount) => Math.min(prevCount + 6, letters.length));
+      setHitCount((prevCount) => {
+        const newCount = Math.min(prevCount + 6, letters.length);
+        hitCountRef.current = newCount; // Update the ref with the new count
+        return newCount;
+      });
     }
     // Reverse direction if the ball hits the bottom of the canvas
     else if (newBall.y + ballRadius > canvas.height) {
       newBall.vy *= -1;
     }
 
+    // Check if hitCount exceeds 29, then move the ball to the center
+    if (hitCountRef.current > 29) {
+      // Gradually reduce the ball's speed as it approaches the center
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+
+      const dx = centerX - newBall.x;
+      const dy = centerY - newBall.y;
+
+      // Calculate a step size to move towards the center
+      const speed = 0.03; // Adjust speed for smoother movement
+      newBall.vx = dx * speed;
+      newBall.vy = dy * speed;
+
+      // If the ball is close enough to the center, stop it
+      if (Math.abs(dx) < 1 && Math.abs(dy) < 1) {
+        newBall.x = centerX;
+        newBall.y = centerY;
+        newBall.vx = 0;
+        newBall.vy = 0;
+      }
+
+      // Hide letters after a few seconds
+      setTimeout(() => {
+        setLettersVisible(false); // Hide letters after 1 seconds
+      }, 1000); // 2-second delay
+    }
+
     // Draw ball
-    ctx.fillStyle = "#f6f6f6";
+    ctx.fillStyle = "#f6f6f6"; // Ball color remains white even after hitting count exceeds 29
     ctx.beginPath();
     ctx.arc(newBall.x, newBall.y, ballRadius, 0, Math.PI * 2);
     ctx.fill();
@@ -120,7 +153,7 @@ export default function Tennis() {
 
   // Function to render the letters based on hitCount
   const renderLetters = () => {
-    if (hitCount > 0) {
+    if (hitCount > 0 && lettersVisible) {
       return <h1>{letters.substring(0, hitCount)}</h1>;
     }
     return null;
