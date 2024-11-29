@@ -24,7 +24,8 @@ export default function Tennis() {
   const platformHeight = 15;
 
   const [hitCount, setHitCount] = useState(0); // Track number of platform hits
-  const letters = "THE   ART   OF    BEING HUMAN"; // Word to reveal
+  const letters = "THE   ART   OF    BEING HUMAN      "; // Word to reveal
+  console.log(hitCount);
 
   function handleKeyDown(e) {
     if (e.key === "ArrowLeft") {
