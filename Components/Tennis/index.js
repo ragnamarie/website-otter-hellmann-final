@@ -2,12 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 
 const LetterDisplay = styled.div`
-  font-size: 80px;
+  font-size: 40px;
   color: #f6f6f6;
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  width: 100vw; /* Full viewport width */
 
   @media (max-width: 750px) {
     font-size: 20px;
@@ -23,7 +24,7 @@ export default function Tennis() {
   const platformHeight = 15;
 
   const [hitCount, setHitCount] = useState(0); // Track number of platform hits
-  const letters = "S P A C E"; // Word to reveal
+  const letters = "THE   ART   OF    BEING HUMAN"; // Word to reveal
 
   function handleKeyDown(e) {
     if (e.key === "ArrowLeft") {
@@ -69,7 +70,7 @@ export default function Tennis() {
       newBall.vy *= -1;
 
       // Increment hit count when the ball hits the platform
-      setHitCount((prevCount) => Math.min(prevCount + 2, letters.length));
+      setHitCount((prevCount) => Math.min(prevCount + 6, letters.length));
     }
     // Reverse direction if the ball hits the bottom of the canvas
     else if (newBall.y + ballRadius > canvas.height) {
