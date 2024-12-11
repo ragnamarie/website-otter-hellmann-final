@@ -28,15 +28,17 @@ export default function Tennis() {
   const letters = "THE   ART   OF    BEING HUMAN      "; // Word to reveal
   const hitCountRef = useRef(0); // Store hitCount using ref
 
-  function handleKeyDown(e) {
-    if (e.key === "ArrowLeft") {
-      platformRef.current.x = Math.max(platformRef.current.x - 75, 0);
-    } else if (e.key === "ArrowRight") {
-      platformRef.current.x = Math.min(
-        platformRef.current.x + 75,
-        canvasRef.current.width - platformWidth
-      );
-    }
+  function handleTrackpadMove(event) {
+    event.preventDefault(); // Prevent default trackpad swipe gestures
+
+    const moveAmount = -event.deltaX; // Horizontal movement from the trackpad
+    const newPlatformX = platformRef.current.x + moveAmount;
+
+    // Ensure the platform stays within the canvas bounds
+    platformRef.current.x = Math.max(
+      0,
+      Math.min(newPlatformX, canvasRef.current.width - platformWidth)
+    );
   }
 
   function updateGame() {
@@ -85,19 +87,16 @@ export default function Tennis() {
 
     // Check if hitCount exceeds 29, then move the ball to the center
     if (hitCountRef.current > 29) {
-      // Gradually reduce the ball's speed as it approaches the center
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
 
       const dx = centerX - newBall.x;
       const dy = centerY - newBall.y;
 
-      // Calculate a step size to move towards the center
       const speed = 0.03; // Adjust speed for smoother movement
       newBall.vx = dx * speed;
       newBall.vy = dy * speed;
 
-      // If the ball is close enough to the center, stop it
       if (Math.abs(dx) < 1 && Math.abs(dy) < 1) {
         newBall.x = centerX;
         newBall.y = centerY;
@@ -105,10 +104,9 @@ export default function Tennis() {
         newBall.vy = 0;
       }
 
-      // Hide letters after a few seconds
       setTimeout(() => {
-        setLettersVisible(false); // Hide letters after 1 seconds
-      }, 1000); // 2-second delay
+        setLettersVisible(false); // Hide letters after 1 second
+      }, 1000); // 1-second delay
     }
 
     // Draw ball
@@ -130,7 +128,7 @@ export default function Tennis() {
       if (canvas) {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
-        ballRef.current.x = canvas.width / 2; // Reset ball to center
+        ballRef.current.x = canvas.width / 2;
         ballRef.current.y = canvas.height / 4;
         platformRef.current.x = (canvas.width - platformWidth) / 2;
       }
@@ -140,14 +138,14 @@ export default function Tennis() {
 
     if (canvasRef.current) {
       requestAnimationFrame(updateGame);
-      window.addEventListener("keydown", handleKeyDown);
       window.addEventListener("resize", resizeCanvas); // Update on window resize
+      window.addEventListener("wheel", handleTrackpadMove, { passive: false }); // Trackpad gesture control
     }
 
     // Cleanup event listeners
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("resize", resizeCanvas);
+      window.removeEventListener("wheel", handleTrackpadMove);
     };
   }, []);
 
@@ -162,7 +160,6 @@ export default function Tennis() {
   return (
     <div style={{ position: "relative", textAlign: "center" }}>
       <canvas ref={canvasRef} />
-      {/* Render letters based on hitCount */}
       <LetterDisplay>{renderLetters()}</LetterDisplay>
     </div>
   );
