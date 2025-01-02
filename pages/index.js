@@ -12,6 +12,9 @@ export default function HomePage() {
       <li>
         <a href="/breathing">BREATHING</a>
       </li>
+      <li>
+        <a href="/tennisvideo">TENNIS WITH VIDEO</a>
+      </li>
     </>
   );
 }
