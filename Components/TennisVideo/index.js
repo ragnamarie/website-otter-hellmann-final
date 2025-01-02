@@ -17,7 +17,6 @@ const LetterDisplay = styled.div`
 
 export default function TennisWithVideo() {
   const canvasRef = useRef(null);
-  const videoRef = useRef(null); // Reference for the video element
   const ballRef = useRef({ x: 50, y: 50, vx: 5, vy: 5 });
   const platformRef = useRef({ x: 100 });
   const ballRadius = 40;
@@ -26,6 +25,7 @@ export default function TennisWithVideo() {
 
   const [hitCount, setHitCount] = useState(0); // Track number of platform hits
   const [lettersVisible, setLettersVisible] = useState(true); // Track visibility of letters
+  const [showVideo, setShowVideo] = useState(false); // Track if video should be shown
   const letters = "THE   ART   OF    BEING HUMAN      "; // Word to reveal
   const hitCountRef = useRef(0); // Store hitCount using ref
 
@@ -45,12 +45,9 @@ export default function TennisWithVideo() {
   function updateGame() {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
-    const video = videoRef.current;
 
-    // Draw video as the background
-    if (video && video.readyState >= 2) {
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    }
+    // Clear the canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Update ball position
     let newBall = ballRef.current;
@@ -83,12 +80,8 @@ export default function TennisWithVideo() {
         return newCount;
       });
     }
-    // Reverse direction if the ball hits the bottom of the canvas
-    else if (newBall.y + ballRadius > canvas.height) {
-      newBall.vy *= -1;
-    }
 
-    // Check if hitCount exceeds 29, then move the ball to the center
+    // Move the ball to the center when hitCount exceeds 29
     if (hitCountRef.current > 29) {
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
@@ -105,15 +98,14 @@ export default function TennisWithVideo() {
         newBall.y = centerY;
         newBall.vx = 0;
         newBall.vy = 0;
-      }
 
-      setTimeout(() => {
-        setLettersVisible(false); // Hide letters after 1 second
-      }, 1000); // 1-second delay
+        setShowVideo(true); // Show video when the ball reaches the center
+        setTimeout(() => setLettersVisible(false), 1000); // Hide letters after 1 second
+      }
     }
 
     // Draw ball
-    ctx.fillStyle = "#f6f6f6"; // Ball color remains white even after hitting count exceeds 29
+    ctx.fillStyle = "#f6f6f6";
     ctx.beginPath();
     ctx.arc(newBall.x, newBall.y, ballRadius, 0, Math.PI * 2);
     ctx.fill();
@@ -145,13 +137,6 @@ export default function TennisWithVideo() {
       window.addEventListener("wheel", handleTrackpadMove, { passive: false }); // Trackpad gesture control
     }
 
-    const video = videoRef.current;
-    if (video) {
-      video.play().catch((err) => {
-        console.error("Error playing the video:", err);
-      });
-    }
-
     // Cleanup event listeners
     return () => {
       window.removeEventListener("resize", resizeCanvas);
@@ -168,14 +153,22 @@ export default function TennisWithVideo() {
 
   return (
     <div style={{ position: "relative", textAlign: "center" }}>
-      <video
-        ref={videoRef}
-        src="/breathing.mp4" // Replace with your video file path
-        autoPlay
-        loop
-        muted
-        style={{ display: "none" }}
-      />
+      {showVideo && (
+        <video
+          src="/breathing.mp4" // Replace with your video file path
+          autoPlay
+          loop
+          muted
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+          }}
+        />
+      )}
       <canvas ref={canvasRef} />
       <LetterDisplay>{renderLetters()}</LetterDisplay>
     </div>
