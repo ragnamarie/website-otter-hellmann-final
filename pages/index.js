@@ -7,9 +7,6 @@ export default function HomePage() {
         <a href="/tennis">TENNIS</a>
       </li>
       <li>
-        <a href="/memory">MEMORY</a>
-      </li>
-      <li>
         <a href="/breathing">BREATHING</a>
       </li>
       <li>

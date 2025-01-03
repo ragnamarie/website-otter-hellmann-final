@@ -34,6 +34,8 @@ export default createGlobalStyle`
   }
 
   main {
+    background-image: url('background.png'); /* Replace with the actual path to your image */
+    background-size: cover; /* Ensures the image covers the entire background */
   }
 
   footer {
