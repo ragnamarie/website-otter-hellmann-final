@@ -1,6 +1,17 @@
 import { useEffect, useRef, useState } from "react";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 
+// Define the fade-out animation
+const fadeOut = keyframes`
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+`;
+
+// Styled component for the letter display
 const LetterDisplay = styled.div`
   font-size: 40px;
   color: #f6f6f6;
@@ -9,6 +20,8 @@ const LetterDisplay = styled.div`
   left: 50%;
   transform: translate(-50%, -50%);
   width: 100vw; /* Full viewport width */
+  opacity: ${(props) => (props.fadeOut ? 0 : 1)};
+  animation: ${(props) => (props.fadeOut ? fadeOut : "none")} 1s forwards;
 
   @media (max-width: 750px) {
     font-size: 20px;
@@ -26,6 +39,7 @@ export default function TennisWithVideo() {
   const [hitCount, setHitCount] = useState(0); // Track number of platform hits
   const [lettersVisible, setLettersVisible] = useState(true); // Track visibility of letters
   const [showVideo, setShowVideo] = useState(false); // Track if video should be shown
+  const [fadeOutLetters, setFadeOutLetters] = useState(false); // Track fade-out animation
   const letters = "THE   ART   OF    BEING HUMAN      "; // Word to reveal
   const hitCountRef = useRef(0); // Store hitCount using ref
 
@@ -59,8 +73,21 @@ export default function TennisWithVideo() {
       newBall.vx *= -1; // Reverse direction on horizontal walls
     }
     if (newBall.y - ballRadius <= 0) {
-      newBall.vy *= -1; // Reverse direction on top wall
+      newBall.vy *= -1; // Reverse direction on the top wall
     }
+    if (newBall.y + ballRadius >= canvas.height) {
+      newBall.vy *= -1; // Reverse direction on the bottom wall
+    }
+
+    // Ensure the ball stays within canvas bounds (optional safeguard)
+    newBall.x = Math.max(
+      ballRadius,
+      Math.min(newBall.x, canvas.width - ballRadius)
+    );
+    newBall.y = Math.max(
+      ballRadius,
+      Math.min(newBall.y, canvas.height - ballRadius)
+    );
 
     // Check for collision with the platform
     const platformX = platformRef.current.x;
@@ -77,6 +104,13 @@ export default function TennisWithVideo() {
       setHitCount((prevCount) => {
         const newCount = Math.min(prevCount + 6, letters.length);
         hitCountRef.current = newCount; // Update the ref with the new count
+
+        // Trigger fade-out animation when hitCount exceeds 29
+        if (newCount > 29 && lettersVisible) {
+          setTimeout(() => setFadeOutLetters(true), 800); // Start fade-out animation
+          setTimeout(() => setLettersVisible(false), 1800); // Hide letters after fade-out
+        }
+
         return newCount;
       });
     }
@@ -89,7 +123,7 @@ export default function TennisWithVideo() {
       const dx = centerX - newBall.x;
       const dy = centerY - newBall.y;
 
-      const speed = 0.03; // Adjust speed for smoother movement
+      const speed = 0.025; // Adjust speed for smoother movement
       newBall.vx = dx * speed;
       newBall.vy = dy * speed;
 
@@ -100,7 +134,6 @@ export default function TennisWithVideo() {
         newBall.vy = 0;
 
         setShowVideo(true); // Show video when the ball reaches the center
-        setTimeout(() => setLettersVisible(false), 1000); // Hide letters after 1 second
       }
     }
 
@@ -157,7 +190,6 @@ export default function TennisWithVideo() {
         <video
           src="/breathing.mp4" // Replace with your video file path
           autoPlay
-          loop
           muted
           style={{
             position: "absolute",
@@ -166,11 +198,12 @@ export default function TennisWithVideo() {
             width: "100%",
             height: "100%",
             objectFit: "cover",
+            zIndex: 0, // Ensure video is below the canvas
           }}
         />
       )}
-      <canvas ref={canvasRef} />
-      <LetterDisplay>{renderLetters()}</LetterDisplay>
+      <canvas ref={canvasRef} style={{ zIndex: 1, position: "relative" }} />
+      <LetterDisplay fadeOut={fadeOutLetters}>{renderLetters()}</LetterDisplay>
     </div>
   );
 }
