@@ -1,13 +1,23 @@
 import { useEffect, useRef, useState } from "react";
 import styled, { keyframes } from "styled-components";
 
-// Define the fade-out animation
+// Define the fade-out animation for letters
 const fadeOut = keyframes`
   from {
     opacity: 1;
   }
   to {
     opacity: 0;
+  }
+`;
+
+// Define the fade-in animation for the video
+const fadeIn = keyframes`
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 `;
 
@@ -26,6 +36,17 @@ const LetterDisplay = styled.div`
   @media (max-width: 750px) {
     font-size: 20px;
   }
+`;
+
+const Video = styled.video`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0; // Ensure video is below the canvas
+  animation: ${fadeIn} 3s forwards; // Apply fade-in animation when video is shown
 `;
 
 export default function TennisWithVideo() {
@@ -123,7 +144,7 @@ export default function TennisWithVideo() {
       const dx = centerX - newBall.x;
       const dy = centerY - newBall.y;
 
-      const speed = 0.025; // Adjust speed for smoother movement
+      const speed = 0.03; // Adjust speed for smoother movement
       newBall.vx = dx * speed;
       newBall.vy = dy * speed;
 
@@ -187,19 +208,10 @@ export default function TennisWithVideo() {
   return (
     <div style={{ position: "relative", textAlign: "center" }}>
       {showVideo && (
-        <video
+        <Video
           src="/breathing.mp4" // Replace with your video file path
           autoPlay
           muted
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            zIndex: 0, // Ensure video is below the canvas
-          }}
         />
       )}
       <canvas ref={canvasRef} style={{ zIndex: 1, position: "relative" }} />
