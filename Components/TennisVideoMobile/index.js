@@ -23,7 +23,7 @@ const fadeIn = keyframes`
 
 // Styled component for the letter display
 const LetterDisplay = styled.div`
-  font-size: 40px;
+  font-size: 15px;
   color: #f6f6f6;
   position: absolute;
   top: 50%;
@@ -47,12 +47,12 @@ const Video = styled.video`
 
 export default function TennisWithVideo() {
   const canvasRef = useRef(null);
-  const ballRef = useRef({ x: 50, y: 50, vx: 7, vy: 7 });
+  const ballRef = useRef({ x: 50, y: 50, vx: 6, vy: 6 });
   const platformRef = useRef({ x: 100 });
   const ballImageRef = useRef(null); // Ref for the ball image
-  const ballRadius = 40;
-  const platformWidth = 225;
-  const platformHeight = 15;
+  const ballRadius = 20;
+  const platformWidth = 100;
+  const platformHeight = 10;
 
   const [hitCount, setHitCount] = useState(0);
   const [lettersVisible, setLettersVisible] = useState(true);
@@ -106,7 +106,7 @@ export default function TennisWithVideo() {
     }
 
     const platformX = platformRef.current.x;
-    const platformY = canvas.height - platformHeight - 100;
+    const platformY = canvas.height - platformHeight - 50;
 
     if (
       newBall.y + ballRadius >= platformY &&
