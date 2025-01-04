@@ -47,7 +47,7 @@ const Video = styled.video`
 
 export default function TennisWithVideo() {
   const canvasRef = useRef(null);
-  const ballRef = useRef({ x: 50, y: 50, vx: 7, vy: 7 });
+  const ballRef = useRef({ x: 50, y: 50, vx: 8, vy: 8 });
   const platformRef = useRef({ x: 100 });
   const ballImageRef = useRef(null); // Ref for the ball image
   const ballRadius = 40;
