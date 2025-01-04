@@ -47,7 +47,7 @@ const Video = styled.video`
 
 export default function TennisWithVideo() {
   const canvasRef = useRef(null);
-  const ballRef = useRef({ x: 50, y: 50, vx: 8, vy: 8 });
+  const ballRef = useRef({ x: 50, y: 50, vx: 6, vy: 6 });
   const platformRef = useRef({ x: 100 });
   const ballImageRef = useRef(null); // Ref for the ball image
   const ballRadius = 20;
@@ -60,6 +60,8 @@ export default function TennisWithVideo() {
   const [fadeOutLetters, setFadeOutLetters] = useState(false);
   const letters = "THE   ART   OF    BEING HUMAN      ";
   const hitCountRef = useRef(0);
+
+  const [touchStartX, setTouchStartX] = useState(0);
 
   // Preload the ball image
   useEffect(() => {
@@ -80,6 +82,33 @@ export default function TennisWithVideo() {
       0,
       Math.min(newPlatformX, canvasRef.current.width - platformWidth)
     );
+  }
+
+  // Handle the start of a touch event
+  function handleTouchStart(event) {
+    const touch = event.touches[0]; // Get the first touch
+    setTouchStartX(touch.clientX);
+  }
+
+  // Handle touch move (update platform position)
+  function handleTouchMove(event) {
+    const touch = event.touches[0];
+    const moveAmount = touch.clientX - touchStartX;
+
+    const newPlatformX = platformRef.current.x + moveAmount;
+
+    platformRef.current.x = Math.max(
+      0,
+      Math.min(newPlatformX, canvasRef.current.width - platformWidth)
+    );
+
+    // Update the touch start position for continuous movement
+    setTouchStartX(touch.clientX);
+  }
+
+  // Handle touch end (reset touch start position)
+  function handleTouchEnd() {
+    setTouchStartX(0); // Reset touch start position after movement ends
   }
 
   function updateGame() {
@@ -190,11 +219,23 @@ export default function TennisWithVideo() {
       requestAnimationFrame(updateGame);
       window.addEventListener("resize", resizeCanvas);
       window.addEventListener("wheel", handleTrackpadMove, { passive: false });
+
+      // Add touch event listeners for mobile
+      window.addEventListener("touchstart", handleTouchStart, {
+        passive: false,
+      });
+      window.addEventListener("touchmove", handleTouchMove, { passive: false });
+      window.addEventListener("touchend", handleTouchEnd, { passive: false });
     }
 
     return () => {
       window.removeEventListener("resize", resizeCanvas);
       window.removeEventListener("wheel", handleTrackpadMove);
+
+      // Remove touch event listeners
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("touchend", handleTouchEnd);
     };
   }, []);
 
