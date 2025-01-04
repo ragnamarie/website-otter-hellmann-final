@@ -45,32 +45,41 @@ const Video = styled.video`
   width: 100%;
   height: 100%;
   object-fit: cover;
-  z-index: 0; // Ensure video is below the canvas
-  animation: ${fadeIn} 3s forwards; // Apply fade-in animation when video is shown
+  z-index: 0; /* Ensure video is below the canvas */
+  animation: ${fadeIn} 3s forwards; /* Apply fade-in animation when video is shown */
 `;
 
 export default function TennisWithVideo() {
   const canvasRef = useRef(null);
-  const ballRef = useRef({ x: 50, y: 50, vx: 5, vy: 5 });
+  const ballRef = useRef({ x: 50, y: 50, vx: 7, vy: 7 });
   const platformRef = useRef({ x: 100 });
+  const ballImageRef = useRef(null); // Ref for the ball image
   const ballRadius = 40;
   const platformWidth = 225;
   const platformHeight = 15;
 
-  const [hitCount, setHitCount] = useState(0); // Track number of platform hits
-  const [lettersVisible, setLettersVisible] = useState(true); // Track visibility of letters
-  const [showVideo, setShowVideo] = useState(false); // Track if video should be shown
-  const [fadeOutLetters, setFadeOutLetters] = useState(false); // Track fade-out animation
-  const letters = "THE   ART   OF    BEING HUMAN      "; // Word to reveal
-  const hitCountRef = useRef(0); // Store hitCount using ref
+  const [hitCount, setHitCount] = useState(0);
+  const [lettersVisible, setLettersVisible] = useState(true);
+  const [showVideo, setShowVideo] = useState(false);
+  const [fadeOutLetters, setFadeOutLetters] = useState(false);
+  const letters = "THE   ART   OF    BEING HUMAN      ";
+  const hitCountRef = useRef(0);
+
+  // Preload the ball image
+  useEffect(() => {
+    const ballImage = new Image();
+    ballImage.src = "/ball.png"; // Replace with the path to your image
+    ballImage.onload = () => {
+      ballImageRef.current = ballImage; // Store the loaded image
+    };
+  }, []);
 
   function handleTrackpadMove(event) {
-    event.preventDefault(); // Prevent default trackpad swipe gestures
+    event.preventDefault();
 
-    const moveAmount = -event.deltaX; // Horizontal movement from the trackpad
+    const moveAmount = -event.deltaX;
     const newPlatformX = platformRef.current.x + moveAmount;
 
-    // Ensure the platform stays within the canvas bounds
     platformRef.current.x = Math.max(
       0,
       Math.min(newPlatformX, canvasRef.current.width - platformWidth)
@@ -89,28 +98,17 @@ export default function TennisWithVideo() {
     newBall.x += newBall.vx;
     newBall.y += newBall.vy;
 
-    // Check for collisions with walls (left, right, top)
+    // Collision detection
     if (newBall.x - ballRadius <= 0 || newBall.x + ballRadius >= canvas.width) {
-      newBall.vx *= -1; // Reverse direction on horizontal walls
+      newBall.vx *= -1;
     }
     if (newBall.y - ballRadius <= 0) {
-      newBall.vy *= -1; // Reverse direction on the top wall
+      newBall.vy *= -1;
     }
     if (newBall.y + ballRadius >= canvas.height) {
-      newBall.vy *= -1; // Reverse direction on the bottom wall
+      newBall.vy *= -1;
     }
 
-    // Ensure the ball stays within canvas bounds (optional safeguard)
-    newBall.x = Math.max(
-      ballRadius,
-      Math.min(newBall.x, canvas.width - ballRadius)
-    );
-    newBall.y = Math.max(
-      ballRadius,
-      Math.min(newBall.y, canvas.height - ballRadius)
-    );
-
-    // Check for collision with the platform
     const platformX = platformRef.current.x;
     const platformY = canvas.height - platformHeight - 100;
 
@@ -121,22 +119,19 @@ export default function TennisWithVideo() {
     ) {
       newBall.vy *= -1;
 
-      // Increment hit count when the ball hits the platform
       setHitCount((prevCount) => {
         const newCount = Math.min(prevCount + 6, letters.length);
-        hitCountRef.current = newCount; // Update the ref with the new count
+        hitCountRef.current = newCount;
 
-        // Trigger fade-out animation when hitCount exceeds 29
         if (newCount > 29 && lettersVisible) {
-          setTimeout(() => setFadeOutLetters(true), 800); // Start fade-out animation
-          setTimeout(() => setLettersVisible(false), 1800); // Hide letters after fade-out
+          setTimeout(() => setFadeOutLetters(true), 800);
+          setTimeout(() => setLettersVisible(false), 1800);
         }
 
         return newCount;
       });
     }
 
-    // Move the ball to the center when hitCount exceeds 29
     if (hitCountRef.current > 29) {
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
@@ -144,7 +139,7 @@ export default function TennisWithVideo() {
       const dx = centerX - newBall.x;
       const dy = centerY - newBall.y;
 
-      const speed = 0.03; // Adjust speed for smoother movement
+      const speed = 0.03;
       newBall.vx = dx * speed;
       newBall.vy = dy * speed;
 
@@ -154,15 +149,25 @@ export default function TennisWithVideo() {
         newBall.vx = 0;
         newBall.vy = 0;
 
-        setShowVideo(true); // Show video when the ball reaches the center
+        setShowVideo(true);
       }
     }
 
     // Draw ball
-    ctx.fillStyle = "#f6f6f6";
-    ctx.beginPath();
-    ctx.arc(newBall.x, newBall.y, ballRadius, 0, Math.PI * 2);
-    ctx.fill();
+    if (ballImageRef.current) {
+      ctx.drawImage(
+        ballImageRef.current,
+        newBall.x - ballRadius,
+        newBall.y - ballRadius,
+        ballRadius * 2,
+        ballRadius * 2
+      );
+    } else {
+      ctx.fillStyle = "#f6f6f6";
+      ctx.beginPath();
+      ctx.arc(newBall.x, newBall.y, ballRadius, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
     // Draw platform
     ctx.fillStyle = "#f6f6f6";
@@ -183,15 +188,14 @@ export default function TennisWithVideo() {
       }
     };
 
-    resizeCanvas(); // Set initial canvas size
+    resizeCanvas();
 
     if (canvasRef.current) {
       requestAnimationFrame(updateGame);
-      window.addEventListener("resize", resizeCanvas); // Update on window resize
-      window.addEventListener("wheel", handleTrackpadMove, { passive: false }); // Trackpad gesture control
+      window.addEventListener("resize", resizeCanvas);
+      window.addEventListener("wheel", handleTrackpadMove, { passive: false });
     }
 
-    // Cleanup event listeners
     return () => {
       window.removeEventListener("resize", resizeCanvas);
       window.removeEventListener("wheel", handleTrackpadMove);
@@ -207,13 +211,7 @@ export default function TennisWithVideo() {
 
   return (
     <div style={{ position: "relative", textAlign: "center" }}>
-      {showVideo && (
-        <Video
-          src="/breathing.mp4" // Replace with your video file path
-          autoPlay
-          muted
-        />
-      )}
+      {showVideo && <Video src="/breathing.mp4" autoPlay muted />}
       <canvas ref={canvasRef} style={{ zIndex: 1, position: "relative" }} />
       <LetterDisplay fadeOut={fadeOutLetters}>{renderLetters()}</LetterDisplay>
     </div>
