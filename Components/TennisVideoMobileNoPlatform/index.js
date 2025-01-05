@@ -45,14 +45,11 @@ const Video = styled.video`
   animation: ${fadeIn} 3s forwards; /* Apply fade-in animation when video is shown */
 `;
 
-export default function TennisWithVideo() {
+export default function TennisWithVideo({ isAudioPlaying }) {
   const canvasRef = useRef(null);
-  const ballRef = useRef({ x: 50, y: 50, vx: 8, vy: 8 });
-  const platformRef = useRef({ x: 100 });
+  const ballRef = useRef({ x: 50, y: 50, vx: 4, vy: 4 });
   const ballImageRef = useRef(null); // Ref for the ball image
   const ballRadius = 20;
-  const platformWidth = 100;
-  const platformHeight = 10;
 
   const [hitCount, setHitCount] = useState(0);
   const [lettersVisible, setLettersVisible] = useState(true);
@@ -82,40 +79,20 @@ export default function TennisWithVideo() {
     newBall.x += newBall.vx;
     newBall.y += newBall.vy;
 
-    // Collision detection
+    // Collision detection with edges
     if (newBall.x - ballRadius <= 0 || newBall.x + ballRadius >= canvas.width) {
       newBall.vx *= -1;
+      incrementHitCount();
     }
-    if (newBall.y - ballRadius <= 0) {
-      newBall.vy *= -1;
-    }
-    if (newBall.y + ballRadius >= canvas.height) {
-      newBall.vy *= -1;
-    }
-
-    const platformX = platformRef.current.x;
-    const platformY = canvas.height - platformHeight - 50;
-
     if (
-      newBall.y + ballRadius >= platformY &&
-      newBall.x >= platformX &&
-      newBall.x <= platformX + platformWidth
+      newBall.y - ballRadius <= 0 ||
+      newBall.y + ballRadius >= canvas.height
     ) {
       newBall.vy *= -1;
-
-      setHitCount((prevCount) => {
-        const newCount = Math.min(prevCount + 6, letters.length);
-        hitCountRef.current = newCount;
-
-        if (newCount > 29 && lettersVisible) {
-          setTimeout(() => setFadeOutLetters(true), 800);
-          setTimeout(() => setLettersVisible(false), 1800);
-        }
-
-        return newCount;
-      });
+      incrementHitCount();
     }
 
+    // Check for end condition
     if (hitCountRef.current > 29) {
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
@@ -153,12 +130,22 @@ export default function TennisWithVideo() {
       ctx.fill();
     }
 
-    // Draw platform
-    ctx.fillStyle = "#f6f6f6";
-    ctx.fillRect(platformX, platformY, platformWidth, platformHeight);
-
     requestAnimationFrame(updateGame);
   }
+
+  const incrementHitCount = () => {
+    setHitCount((prevCount) => {
+      const newCount = Math.min(prevCount + 6, letters.length);
+      hitCountRef.current = newCount;
+
+      if (newCount > 29 && lettersVisible) {
+        setTimeout(() => setFadeOutLetters(true), 800);
+        setTimeout(() => setLettersVisible(false), 1800);
+      }
+
+      return newCount;
+    });
+  };
 
   useEffect(() => {
     const resizeCanvas = () => {
@@ -168,42 +155,6 @@ export default function TennisWithVideo() {
         canvas.height = window.innerHeight;
         ballRef.current.x = canvas.width / 2;
         ballRef.current.y = canvas.height / 4;
-        platformRef.current.x = (canvas.width - platformWidth) / 2;
-      }
-    };
-
-    const handleDeviceTilt = (event) => {
-      const tilt = event.gamma; // Gamma is the tilt left/right
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-
-      const moveAmount = tilt * 2; // Adjust sensitivity as needed
-      const newPlatformX = platformRef.current.x + moveAmount;
-
-      platformRef.current.x = Math.max(
-        0,
-        Math.min(newPlatformX, canvas.width - platformWidth)
-      );
-    };
-
-    const requestMotionPermission = async () => {
-      if (
-        typeof DeviceMotionEvent !== "undefined" &&
-        typeof DeviceMotionEvent.requestPermission === "function"
-      ) {
-        try {
-          const permission = await DeviceMotionEvent.requestPermission();
-          if (permission === "granted") {
-            window.addEventListener("deviceorientation", handleDeviceTilt);
-          } else {
-            alert("Motion permission denied.");
-          }
-        } catch (error) {
-          console.error("Error requesting motion permission:", error);
-        }
-      } else {
-        // Fallback for browsers that don't require permission
-        window.addEventListener("deviceorientation", handleDeviceTilt);
       }
     };
 
@@ -212,12 +163,10 @@ export default function TennisWithVideo() {
     if (canvasRef.current) {
       requestAnimationFrame(updateGame);
       window.addEventListener("resize", resizeCanvas);
-      requestMotionPermission(); // Request permission for motion events
     }
 
     return () => {
       window.removeEventListener("resize", resizeCanvas);
-      window.removeEventListener("deviceorientation", handleDeviceTilt);
     };
   }, []);
 
@@ -228,9 +177,24 @@ export default function TennisWithVideo() {
     return null;
   };
 
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.muted = !isAudioPlaying; // Sync mute state with sound toggle
+      if (isAudioPlaying) {
+        videoRef.current.play().catch((error) => {
+          console.error("Video playback failed:", error);
+        });
+      }
+    }
+  }, [isAudioPlaying]);
+
   return (
     <div style={{ position: "relative", textAlign: "center" }}>
-      {showVideo && <Video src="/breathing.mp4" autoPlay muted playsInline />}
+      {showVideo && (
+        <Video ref={videoRef} src="/breathing.mp4" autoPlay muted playsInline />
+      )}
       <canvas ref={canvasRef} style={{ zIndex: 1, position: "relative" }} />
       <LetterDisplay fadeOut={fadeOutLetters}>{renderLetters()}</LetterDisplay>
     </div>

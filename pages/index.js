@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import TennisVideo from "@/Components/TennisVideo";
-import TennisVideoMobileTilt from "@/Components/TennisVideoMobileTilt";
+import TennisVideoMobileNoPlatform from "@/Components/TennisVideoMobileNoPlatform";
 
 export default function HomePage() {
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
@@ -39,7 +39,7 @@ export default function HomePage() {
         <TennisVideo />
       </div>
       <div className="mobile-only">
-        <TennisVideoMobileTilt />
+        <TennisVideoMobileNoPlatform isAudioPlaying={isAudioPlaying} />
       </div>
 
       {/* Sound toggle */}
