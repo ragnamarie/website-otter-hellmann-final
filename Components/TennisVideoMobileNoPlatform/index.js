@@ -45,9 +45,9 @@ const Video = styled.video`
   animation: ${fadeIn} 3s forwards; /* Apply fade-in animation when video is shown */
 `;
 
-export default function TennisWithVideo() {
+export default function TennisWithVideo({ isAudioPlaying }) {
   const canvasRef = useRef(null);
-  const ballRef = useRef({ x: 50, y: 50, vx: 5, vy: 5 });
+  const ballRef = useRef({ x: 50, y: 50, vx: 4, vy: 4 });
   const ballImageRef = useRef(null); // Ref for the ball image
   const ballRadius = 20;
 
@@ -177,9 +177,24 @@ export default function TennisWithVideo() {
     return null;
   };
 
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.muted = !isAudioPlaying; // Sync mute state with sound toggle
+      if (isAudioPlaying) {
+        videoRef.current.play().catch((error) => {
+          console.error("Video playback failed:", error);
+        });
+      }
+    }
+  }, [isAudioPlaying]);
+
   return (
     <div style={{ position: "relative", textAlign: "center" }}>
-      {showVideo && <Video src="/breathing.mp4" autoPlay muted playsInline />}
+      {showVideo && (
+        <Video ref={videoRef} src="/breathing.mp4" autoPlay muted playsInline />
+      )}
       <canvas ref={canvasRef} style={{ zIndex: 1, position: "relative" }} />
       <LetterDisplay fadeOut={fadeOutLetters}>{renderLetters()}</LetterDisplay>
     </div>
