@@ -186,12 +186,33 @@ export default function TennisWithVideo() {
       );
     };
 
+    const requestMotionPermission = async () => {
+      if (
+        typeof DeviceMotionEvent !== "undefined" &&
+        typeof DeviceMotionEvent.requestPermission === "function"
+      ) {
+        try {
+          const permission = await DeviceMotionEvent.requestPermission();
+          if (permission === "granted") {
+            window.addEventListener("deviceorientation", handleDeviceTilt);
+          } else {
+            alert("Motion permission denied.");
+          }
+        } catch (error) {
+          console.error("Error requesting motion permission:", error);
+        }
+      } else {
+        // Fallback for browsers that don't require permission
+        window.addEventListener("deviceorientation", handleDeviceTilt);
+      }
+    };
+
     resizeCanvas();
 
     if (canvasRef.current) {
       requestAnimationFrame(updateGame);
       window.addEventListener("resize", resizeCanvas);
-      window.addEventListener("deviceorientation", handleDeviceTilt);
+      requestMotionPermission(); // Request permission for motion events
     }
 
     return () => {
