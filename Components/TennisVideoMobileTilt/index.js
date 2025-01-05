@@ -70,18 +70,6 @@ export default function TennisWithVideo() {
     };
   }, []);
 
-  function handleTrackpadMove(event) {
-    event.preventDefault();
-
-    const moveAmount = -event.deltaX;
-    const newPlatformX = platformRef.current.x + moveAmount;
-
-    platformRef.current.x = Math.max(
-      0,
-      Math.min(newPlatformX, canvasRef.current.width - platformWidth)
-    );
-  }
-
   function updateGame() {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
@@ -184,17 +172,31 @@ export default function TennisWithVideo() {
       }
     };
 
+    const handleDeviceTilt = (event) => {
+      const tilt = event.gamma; // Gamma is the tilt left/right
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      const moveAmount = tilt * 2; // Adjust sensitivity as needed
+      const newPlatformX = platformRef.current.x + moveAmount;
+
+      platformRef.current.x = Math.max(
+        0,
+        Math.min(newPlatformX, canvas.width - platformWidth)
+      );
+    };
+
     resizeCanvas();
 
     if (canvasRef.current) {
       requestAnimationFrame(updateGame);
       window.addEventListener("resize", resizeCanvas);
-      window.addEventListener("wheel", handleTrackpadMove, { passive: false });
+      window.addEventListener("deviceorientation", handleDeviceTilt);
     }
 
     return () => {
       window.removeEventListener("resize", resizeCanvas);
-      window.removeEventListener("wheel", handleTrackpadMove);
+      window.removeEventListener("deviceorientation", handleDeviceTilt);
     };
   }, []);
 
