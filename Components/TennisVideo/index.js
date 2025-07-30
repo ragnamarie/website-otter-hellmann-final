@@ -51,8 +51,8 @@ export default function TennisWithVideo() {
   const platformRef = useRef({ x: 100 });
   const ballImageRef = useRef(null); // Ref for the ball image
   const ballRadius = 40;
-  const platformWidth = 225;
-  const platformHeight = 15;
+  const platformWidth = 150;
+  const platformHeight = 30;
 
   const [hitCount, setHitCount] = useState(0);
   const [lettersVisible, setLettersVisible] = useState(true);
@@ -166,7 +166,7 @@ export default function TennisWithVideo() {
     }
 
     // Draw platform
-    ctx.fillStyle = "#f6f6f6";
+    ctx.fillStyle = "#e6331b";
     ctx.fillRect(platformX, platformY, platformWidth, platformHeight);
 
     requestAnimationFrame(updateGame);
