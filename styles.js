@@ -20,7 +20,7 @@ export default createGlobalStyle`
 
   /* if any layout stuff is weird delete this part */
   html,
-  body {
+    body {
     margin: 0;
     padding: 0;
     height: 100%;
@@ -28,7 +28,7 @@ export default createGlobalStyle`
   /* if any layout stuff is weird delete this part */
   
   body {
-    font-family: "Inter", sans-serif;
+    font-family: "Atico", sans-serif;
     font-optical-sizing: auto;
     font-style: normal;
   }

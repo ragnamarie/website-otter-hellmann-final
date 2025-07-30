@@ -24,7 +24,7 @@ const fadeIn = keyframes`
 // Styled component for the letter display
 const LetterDisplay = styled.div`
   font-size: 40px;
-  color: #f6f6f6;
+  color: #e6331b;
   position: absolute;
   top: 50%;
   left: 50%;
@@ -58,7 +58,7 @@ export default function TennisWithVideo() {
   const [lettersVisible, setLettersVisible] = useState(true);
   const [showVideo, setShowVideo] = useState(false);
   const [fadeOutLetters, setFadeOutLetters] = useState(false);
-  const letters = "THE   ART   OF    BEING HUMAN      ";
+  const letters = "the   art   of    being human      ";
   const hitCountRef = useRef(0);
 
   // Preload the ball image

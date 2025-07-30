@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 
 const LetterDisplay = styled.div`
-  font-size: 40px;
-  color: #f6f6f6;
+  font-size: 100px;
+  color: #e6331b;
   position: absolute;
   top: 50%;
   left: 50%;
@@ -25,7 +25,7 @@ export default function Tennis() {
 
   const [hitCount, setHitCount] = useState(0); // Track number of platform hits
   const [lettersVisible, setLettersVisible] = useState(true); // Track visibility of letters
-  const letters = "THE   ART   OF    BEING HUMAN      "; // Word to reveal
+  const letters = "the   art   of    being human      "; // Word to reveal
   const hitCountRef = useRef(0); // Store hitCount using ref
 
   function handleTrackpadMove(event) {
