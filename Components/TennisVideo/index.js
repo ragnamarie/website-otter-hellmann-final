@@ -23,7 +23,7 @@ const fadeIn = keyframes`
 
 // Styled component for the letter display
 const LetterDisplay = styled.div`
-  font-size: 40px;
+  font-size: 4vw;
   color: #e6331b;
   position: absolute;
   top: 50%;
@@ -49,8 +49,7 @@ export default function TennisWithVideo() {
   const canvasRef = useRef(null);
   const ballRef = useRef({ x: 50, y: 50, vx: 8, vy: 8 });
   const platformRef = useRef({ x: 100 });
-  const ballImageRef = useRef(null); // Ref for the ball image
-  const ballRadius = 40;
+  const ballRadius = 15;
   const platformWidth = 150;
   const platformHeight = 30;
 
@@ -58,17 +57,8 @@ export default function TennisWithVideo() {
   const [lettersVisible, setLettersVisible] = useState(true);
   const [showVideo, setShowVideo] = useState(false);
   const [fadeOutLetters, setFadeOutLetters] = useState(false);
-  const letters = "the   art   of    being human      ";
+  const letters = "the   art   of    beıng human      ";
   const hitCountRef = useRef(0);
-
-  // Preload the ball image
-  useEffect(() => {
-    const ballImage = new Image();
-    ballImage.src = "/ball.png"; // Replace with the path to your image
-    ballImage.onload = () => {
-      ballImageRef.current = ballImage; // Store the loaded image
-    };
-  }, []);
 
   function handleTrackpadMove(event) {
     event.preventDefault();
@@ -119,18 +109,20 @@ export default function TennisWithVideo() {
         const newCount = Math.min(prevCount + 6, letters.length);
         hitCountRef.current = newCount;
 
-        if (newCount > 29 && lettersVisible) {
+        /* this is what makes the letters fade out after exceeding the hit count */
+
+        /*if (newCount > 29 && lettersVisible) {
           setTimeout(() => setFadeOutLetters(true), 800);
           setTimeout(() => setLettersVisible(false), 1800);
-        }
+        }*/
 
         return newCount;
       });
     }
 
     if (hitCountRef.current > 29) {
-      const centerX = canvas.width / 2;
-      const centerY = canvas.height / 2;
+      const centerX = canvas.width / 2 + canvas.width * 0.046; // approx 6.5% to the right
+      const centerY = canvas.height / 2 - canvas.height * 0.047;
 
       const dx = centerX - newBall.x;
       const dy = centerY - newBall.y;
@@ -150,20 +142,10 @@ export default function TennisWithVideo() {
     }
 
     // Draw ball
-    if (ballImageRef.current) {
-      ctx.drawImage(
-        ballImageRef.current,
-        newBall.x - ballRadius,
-        newBall.y - ballRadius,
-        ballRadius * 2,
-        ballRadius * 2
-      );
-    } else {
-      ctx.fillStyle = "#f6f6f6";
-      ctx.beginPath();
-      ctx.arc(newBall.x, newBall.y, ballRadius, 0, Math.PI * 2);
-      ctx.fill();
-    }
+    ctx.fillStyle = "#e6331b"; // Rot, wie die Plattform
+    ctx.beginPath();
+    ctx.arc(newBall.x, newBall.y, ballRadius, 0, Math.PI * 2);
+    ctx.fill();
 
     // Draw platform
     ctx.fillStyle = "#e6331b";
