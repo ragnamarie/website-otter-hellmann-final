@@ -1,27 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import styled, { keyframes } from "styled-components";
 
-// Define the fade-out animation for letters
+// Fade animations
 const fadeOut = keyframes`
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
+  from { opacity: 1; }
+  to { opacity: 0; }
 `;
 
-// Define the fade-in animation for the video
 const fadeIn = keyframes`
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 `;
 
-// Styled component for the letter display
 const LetterDisplay = styled.div`
   font-size: 4vw;
   color: #e6331b;
@@ -29,7 +19,7 @@ const LetterDisplay = styled.div`
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 100vw; /* Full viewport width */
+  width: 100vw;
   opacity: ${(props) => (props.fadeOut ? 0 : 1)};
   animation: ${(props) => (props.fadeOut ? fadeOut : "none")} 1s forwards;
 `;
@@ -41,8 +31,8 @@ const Video = styled.video`
   width: 100%;
   height: 100%;
   object-fit: cover;
-  z-index: 0; /* Ensure video is below the canvas */
-  animation: ${fadeIn} 3s forwards; /* Apply fade-in animation when video is shown */
+  z-index: 0;
+  animation: ${fadeIn} 3s forwards;
 `;
 
 export default function TennisWithVideo() {
@@ -60,6 +50,14 @@ export default function TennisWithVideo() {
   const letters = "the   art   of    beıng human      ";
   const hitCountRef = useRef(0);
 
+  // Sound effect
+  const pongSoundRef = useRef(null);
+
+  useEffect(() => {
+    pongSoundRef.current = new Audio("/PONG.wav");
+    pongSoundRef.current.preload = "auto";
+  }, []);
+
   function handleTrackpadMove(event) {
     event.preventDefault();
 
@@ -76,15 +74,13 @@ export default function TennisWithVideo() {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
 
-    // Clear the canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Update ball position
     let newBall = ballRef.current;
     newBall.x += newBall.vx;
     newBall.y += newBall.vy;
 
-    // Collision detection
+    // Wall collisions
     if (newBall.x - ballRadius <= 0 || newBall.x + ballRadius >= canvas.width) {
       newBall.vx *= -1;
     }
@@ -98,30 +94,31 @@ export default function TennisWithVideo() {
     const platformX = platformRef.current.x;
     const platformY = canvas.height - platformHeight - 100;
 
+    // Platform collision
     if (
       newBall.y + ballRadius >= platformY &&
       newBall.x >= platformX &&
-      newBall.x <= platformX + platformWidth
+      newBall.x <= platformX + platformWidth &&
+      newBall.vy > 0 // ensures hit only when moving down
     ) {
       newBall.vy *= -1;
+
+      // Play sound
+      if (pongSoundRef.current) {
+        pongSoundRef.current.currentTime = 0; // rewind
+        pongSoundRef.current.play().catch(() => {});
+      }
 
       setHitCount((prevCount) => {
         const newCount = Math.min(prevCount + 6, letters.length);
         hitCountRef.current = newCount;
-
-        /* this is what makes the letters fade out after exceeding the hit count */
-
-        /*if (newCount > 29 && lettersVisible) {
-          setTimeout(() => setFadeOutLetters(true), 800);
-          setTimeout(() => setLettersVisible(false), 1800);
-        }*/
-
         return newCount;
       });
     }
 
+    // Ball moves toward center when letters are done
     if (hitCountRef.current > 29) {
-      const centerX = canvas.width / 2 + canvas.width * 0.046; // approx 6.5% to the right
+      const centerX = canvas.width / 2 + canvas.width * 0.046;
       const centerY = canvas.height / 2 - canvas.height * 0.047;
 
       const dx = centerX - newBall.x;
@@ -136,13 +133,12 @@ export default function TennisWithVideo() {
         newBall.y = centerY;
         newBall.vx = 0;
         newBall.vy = 0;
-
         setShowVideo(true);
       }
     }
 
     // Draw ball
-    ctx.fillStyle = "#e6331b"; // Rot, wie die Plattform
+    ctx.fillStyle = "#e6331b";
     ctx.beginPath();
     ctx.arc(newBall.x, newBall.y, ballRadius, 0, Math.PI * 2);
     ctx.fill();
