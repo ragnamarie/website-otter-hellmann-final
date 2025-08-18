@@ -39,7 +39,7 @@ export default function HomePage() {
         <TennisVideo />
       </div>
       <div className="mobile-only">
-        <TennisVideoMobileNoPlatform isAudioPlaying={isAudioPlaying} />
+        <TennisVideoMobileNoPlatform />
       </div>
 
       {/* Sound toggle */}

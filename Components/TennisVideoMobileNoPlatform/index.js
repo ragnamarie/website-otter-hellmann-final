@@ -1,37 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import styled, { keyframes } from "styled-components";
 
-// Define the fade-out animation for letters
-const fadeOut = keyframes`
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
-`;
-
-// Define the fade-in animation for the video
+// Fade-in animation for the video
 const fadeIn = keyframes`
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 `;
 
-// Styled component for the letter display
 const LetterDisplay = styled.div`
   font-size: 15px;
-  color: #f6f6f6;
+  color: #e6331b;
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 100vw; /* Full viewport width */
-  opacity: ${(props) => (props.fadeOut ? 0 : 1)};
-  animation: ${(props) => (props.fadeOut ? fadeOut : "none")} 1s forwards;
+  width: 100vw;
 `;
 
 const Video = styled.video`
@@ -41,66 +24,73 @@ const Video = styled.video`
   width: 100%;
   height: 100%;
   object-fit: cover;
-  z-index: 0; /* Ensure video is below the canvas */
-  animation: ${fadeIn} 3s forwards; /* Apply fade-in animation when video is shown */
+  z-index: 0;
+  animation: ${fadeIn} 3s forwards;
 `;
 
-export default function TennisWithVideo({ isAudioPlaying }) {
+export default function TennisVideoMobileNoPlatform() {
   const canvasRef = useRef(null);
   const ballRef = useRef({ x: 50, y: 50, vx: 4, vy: 4 });
-  const ballImageRef = useRef(null); // Ref for the ball image
   const ballRadius = 20;
 
   const [hitCount, setHitCount] = useState(0);
-  const [lettersVisible, setLettersVisible] = useState(true);
+  const [lettersVisible] = useState(true);
   const [showVideo, setShowVideo] = useState(false);
-  const [fadeOutLetters, setFadeOutLetters] = useState(false);
-  const letters = "THE   ART   OF    BEING HUMAN      ";
+  const letters = "the   art   of    being human      ";
   const hitCountRef = useRef(0);
 
-  // Preload the ball image
+  // 🔊 Sound effect
+  const pongSoundRef = useRef(null);
+
   useEffect(() => {
-    const ballImage = new Image();
-    ballImage.src = "/ball.png"; // Replace with the path to your image
-    ballImage.onload = () => {
-      ballImageRef.current = ballImage; // Store the loaded image
-    };
+    pongSoundRef.current = new Audio("/pong.wav");
   }, []);
+
+  function playPongSound() {
+    if (pongSoundRef.current) {
+      pongSoundRef.current.currentTime = 0; // restart from beginning
+      pongSoundRef.current
+        .play()
+        .catch((err) => console.warn("Audio play prevented:", err));
+    }
+  }
 
   function updateGame() {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
 
-    // Clear the canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Update ball position
     let newBall = ballRef.current;
     newBall.x += newBall.vx;
     newBall.y += newBall.vy;
 
-    // Collision detection with edges
+    // Wall collisions (X)
     if (newBall.x - ballRadius <= 0 || newBall.x + ballRadius >= canvas.width) {
       newBall.vx *= -1;
       incrementHitCount();
+      playPongSound(); // 🔊 play sound
     }
+
+    // Wall collisions (Y)
     if (
       newBall.y - ballRadius <= 0 ||
       newBall.y + ballRadius >= canvas.height
     ) {
       newBall.vy *= -1;
       incrementHitCount();
+      playPongSound(); // 🔊 play sound
     }
 
-    // Check for end condition
+    // End condition: ball moves to center
     if (hitCountRef.current > 29) {
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
 
       const dx = centerX - newBall.x;
       const dy = centerY - newBall.y;
-
       const speed = 0.03;
+
       newBall.vx = dx * speed;
       newBall.vy = dy * speed;
 
@@ -109,26 +99,15 @@ export default function TennisWithVideo({ isAudioPlaying }) {
         newBall.y = centerY;
         newBall.vx = 0;
         newBall.vy = 0;
-
         setShowVideo(true);
       }
     }
 
     // Draw ball
-    if (ballImageRef.current) {
-      ctx.drawImage(
-        ballImageRef.current,
-        newBall.x - ballRadius,
-        newBall.y - ballRadius,
-        ballRadius * 2,
-        ballRadius * 2
-      );
-    } else {
-      ctx.fillStyle = "#f6f6f6";
-      ctx.beginPath();
-      ctx.arc(newBall.x, newBall.y, ballRadius, 0, Math.PI * 2);
-      ctx.fill();
-    }
+    ctx.fillStyle = "#e6331b";
+    ctx.beginPath();
+    ctx.arc(newBall.x, newBall.y, ballRadius, 0, Math.PI * 2);
+    ctx.fill();
 
     requestAnimationFrame(updateGame);
   }
@@ -137,12 +116,6 @@ export default function TennisWithVideo({ isAudioPlaying }) {
     setHitCount((prevCount) => {
       const newCount = Math.min(prevCount + 6, letters.length);
       hitCountRef.current = newCount;
-
-      if (newCount > 29 && lettersVisible) {
-        setTimeout(() => setFadeOutLetters(true), 800);
-        setTimeout(() => setLettersVisible(false), 1800);
-      }
-
       return newCount;
     });
   };
@@ -179,24 +152,13 @@ export default function TennisWithVideo({ isAudioPlaying }) {
 
   const videoRef = useRef(null);
 
-  useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.muted = !isAudioPlaying; // Sync mute state with sound toggle
-      if (isAudioPlaying) {
-        videoRef.current.play().catch((error) => {
-          console.error("Video playback failed:", error);
-        });
-      }
-    }
-  }, [isAudioPlaying]);
-
   return (
     <div style={{ position: "relative", textAlign: "center" }}>
       {showVideo && (
         <Video ref={videoRef} src="/breathing.mp4" autoPlay muted playsInline />
       )}
       <canvas ref={canvasRef} style={{ zIndex: 1, position: "relative" }} />
-      <LetterDisplay fadeOut={fadeOutLetters}>{renderLetters()}</LetterDisplay>
+      <LetterDisplay>{renderLetters()}</LetterDisplay>
     </div>
   );
 }
