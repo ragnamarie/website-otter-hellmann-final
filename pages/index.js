@@ -7,7 +7,7 @@ export default function HomePage() {
   const [audioInstance, setAudioInstance] = useState(null);
 
   useEffect(() => {
-    const audio = new Audio("/music.mp3");
+    const audio = new Audio("/Sound.mp4");
     audio.loop = true; // Set audio to loop
     setAudioInstance(audio);
 
@@ -22,14 +22,14 @@ export default function HomePage() {
 
   const toggleAudio = () => {
     if (audioInstance) {
-      if (isAudioPlaying) {
-        audioInstance.pause();
-      } else {
-        audioInstance
-          .play()
-          .catch((error) => console.error("Audio playback failed:", error));
-      }
+      // Toggle muted instead of pausing
+      audioInstance.muted = isAudioPlaying; // If currently playing, mute it
       setIsAudioPlaying(!isAudioPlaying);
+
+      // Ensure it is always playing
+      audioInstance
+        .play()
+        .catch((error) => console.error("Audio playback failed:", error));
     }
   };
 
