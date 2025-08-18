@@ -47,7 +47,7 @@ export default function TennisWithVideo() {
   const [lettersVisible, setLettersVisible] = useState(true);
   const [showVideo, setShowVideo] = useState(false);
   const [fadeOutLetters, setFadeOutLetters] = useState(false);
-  const letters = "the   art   of    beıng human      ";
+  const letters = "the   art   of    be\u0131ng human      ";
   const hitCountRef = useRef(0);
 
   // Sound effect
