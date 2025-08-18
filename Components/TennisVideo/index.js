@@ -131,32 +131,38 @@ export default function TennisWithRedirect() {
   }
 
   useEffect(() => {
-    if (!videoFinished) return; // ⬅️ game starts only after video
+    if (!videoFinished) return; // game starts only after video
 
-    const resizeCanvas = () => {
-      const canvas = canvasRef.current;
-      if (canvas) {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        ballRef.current.x = canvas.width / 2;
-        ballRef.current.y = canvas.height / 4;
-        platformRef.current.x = (canvas.width - platformWidth) / 2;
+    const timer = setTimeout(() => {
+      const resizeCanvas = () => {
+        const canvas = canvasRef.current;
+        if (canvas) {
+          canvas.width = window.innerWidth;
+          canvas.height = window.innerHeight;
+          ballRef.current.x = canvas.width / 2;
+          ballRef.current.y = canvas.height / 4;
+          platformRef.current.x = (canvas.width - platformWidth) / 2;
+        }
+      };
+
+      resizeCanvas();
+
+      if (canvasRef.current) {
+        requestAnimationFrame(updateGame);
+        window.addEventListener("resize", resizeCanvas);
+        window.addEventListener("wheel", handleTrackpadMove, {
+          passive: false,
+        });
       }
-    };
 
-    resizeCanvas();
+      return () => {
+        window.removeEventListener("resize", resizeCanvas);
+        window.removeEventListener("wheel", handleTrackpadMove);
+      };
+    }, 2000); // 1 second delay
 
-    if (canvasRef.current) {
-      requestAnimationFrame(updateGame);
-      window.addEventListener("resize", resizeCanvas);
-      window.addEventListener("wheel", handleTrackpadMove, { passive: false });
-    }
-
-    return () => {
-      window.removeEventListener("resize", resizeCanvas);
-      window.removeEventListener("wheel", handleTrackpadMove);
-    };
-  }, [videoFinished]); // run only when video is done
+    return () => clearTimeout(timer);
+  }, [videoFinished]);
 
   const renderLetters = () => {
     if (hitCount > 0 && lettersVisible) {
