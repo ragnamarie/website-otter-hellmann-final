@@ -1,15 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import styled, { keyframes } from "styled-components";
 
-// Fade animations
 const fadeOut = keyframes`
   from { opacity: 1; }
   to { opacity: 0; }
-`;
-
-const fadeIn = keyframes`
-  from { opacity: 0; }
-  to { opacity: 1; }
 `;
 
 const LetterDisplay = styled.div`
@@ -24,18 +18,7 @@ const LetterDisplay = styled.div`
   animation: ${(props) => (props.fadeOut ? fadeOut : "none")} 1s forwards;
 `;
 
-const Video = styled.video`
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  z-index: 0;
-  animation: ${fadeIn} 3s forwards;
-`;
-
-export default function TennisWithVideo() {
+export default function TennisWithRedirect() {
   const canvasRef = useRef(null);
   const ballRef = useRef({ x: 50, y: 50, vx: 8, vy: 8 });
   const platformRef = useRef({ x: 100 });
@@ -45,12 +28,12 @@ export default function TennisWithVideo() {
 
   const [hitCount, setHitCount] = useState(0);
   const [lettersVisible, setLettersVisible] = useState(true);
-  const [showVideo, setShowVideo] = useState(false);
   const [fadeOutLetters, setFadeOutLetters] = useState(false);
+  const [videoFinished, setVideoFinished] = useState(false); // NEW
+
   const letters = "the   art   of    be\u0131ng human      ";
   const hitCountRef = useRef(0);
 
-  // Sound effect
   const pongSoundRef = useRef(null);
 
   useEffect(() => {
@@ -60,10 +43,8 @@ export default function TennisWithVideo() {
 
   function handleTrackpadMove(event) {
     event.preventDefault();
-
     const moveAmount = -event.deltaX;
     const newPlatformX = platformRef.current.x + moveAmount;
-
     platformRef.current.x = Math.max(
       0,
       Math.min(newPlatformX, canvasRef.current.width - platformWidth)
@@ -99,13 +80,12 @@ export default function TennisWithVideo() {
       newBall.y + ballRadius >= platformY &&
       newBall.x >= platformX &&
       newBall.x <= platformX + platformWidth &&
-      newBall.vy > 0 // ensures hit only when moving down
+      newBall.vy > 0
     ) {
       newBall.vy *= -1;
 
-      // Play sound
       if (pongSoundRef.current) {
-        pongSoundRef.current.currentTime = 0; // rewind
+        pongSoundRef.current.currentTime = 0;
         pongSoundRef.current.play().catch(() => {});
       }
 
@@ -116,7 +96,7 @@ export default function TennisWithVideo() {
       });
     }
 
-    // Ball moves toward center when letters are done
+    // Redirect part
     if (hitCountRef.current > 29) {
       const centerX = canvas.width / 2 + canvas.width * 0.046;
       const centerY = canvas.height / 2 - canvas.height * 0.047;
@@ -133,7 +113,7 @@ export default function TennisWithVideo() {
         newBall.y = centerY;
         newBall.vx = 0;
         newBall.vy = 0;
-        setShowVideo(true);
+        window.location.href = "https://meikeludwigs.com/about";
       }
     }
 
@@ -151,6 +131,8 @@ export default function TennisWithVideo() {
   }
 
   useEffect(() => {
+    if (!videoFinished) return; // ⬅️ game starts only after video
+
     const resizeCanvas = () => {
       const canvas = canvasRef.current;
       if (canvas) {
@@ -174,7 +156,7 @@ export default function TennisWithVideo() {
       window.removeEventListener("resize", resizeCanvas);
       window.removeEventListener("wheel", handleTrackpadMove);
     };
-  }, []);
+  }, [videoFinished]); // run only when video is done
 
   const renderLetters = () => {
     if (hitCount > 0 && lettersVisible) {
@@ -185,9 +167,23 @@ export default function TennisWithVideo() {
 
   return (
     <div style={{ position: "relative", textAlign: "center" }}>
-      {showVideo && <Video src="/breathing.mp4" autoPlay muted />}
-      <canvas ref={canvasRef} style={{ zIndex: 1, position: "relative" }} />
-      <LetterDisplay fadeOut={fadeOutLetters}>{renderLetters()}</LetterDisplay>
+      {!videoFinished ? (
+        <video
+          src="/Video.mp4"
+          autoPlay
+          muted
+          playsInline
+          onEnded={() => setVideoFinished(true)}
+          style={{ width: "100%", height: "100vh", objectFit: "cover" }}
+        />
+      ) : (
+        <>
+          <canvas ref={canvasRef} style={{ zIndex: 1, position: "relative" }} />
+          <LetterDisplay fadeOut={fadeOutLetters}>
+            {renderLetters()}
+          </LetterDisplay>
+        </>
+      )}
     </div>
   );
 }
