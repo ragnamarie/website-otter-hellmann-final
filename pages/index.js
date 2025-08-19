@@ -1,52 +1,34 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import TennisVideo from "@/Components/TennisVideo";
 import TennisVideoMobileNoPlatform from "@/Components/TennisVideoMobileNoPlatform";
 
 export default function HomePage() {
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
-  const audioRef = useRef(null);
+  const [audioInstance, setAudioInstance] = useState(null);
 
-  // Initialize audio once
   useEffect(() => {
     const audio = new Audio("/Sound.mp4");
-    audio.muted = false;
-    audioRef.current = audio;
+    setAudioInstance(audio);
 
-    // Clean up on unmount
+    // Clean up the audio instance when the component unmounts
     return () => {
-      audio.pause();
-      audio.src = "";
+      if (audio) {
+        audio.pause();
+        audio.src = ""; // Clear the audio source to free up resources
+      }
     };
   }, []);
 
-  // Pause/resume audio on tab visibility change
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      const audio = audioRef.current;
-      if (!audio) return;
-
-      if (document.visibilityState === "hidden") {
-        audio.pause();
-      } else if (document.visibilityState === "visible" && isAudioPlaying) {
-        audio.play().catch(() => {});
-      }
-    };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () =>
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-  }, [isAudioPlaying]);
-
   const toggleAudio = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
+    if (audioInstance) {
+      // Toggle muted instead of pausing
+      audioInstance.muted = isAudioPlaying; // If currently playing, mute it
+      setIsAudioPlaying(!isAudioPlaying);
 
-    if (isAudioPlaying) {
-      audio.pause();
-      setIsAudioPlaying(false);
-    } else {
-      audio.play().catch(() => {});
-      setIsAudioPlaying(true);
+      // Ensure it is always playing
+      audioInstance
+        .play()
+        .catch((error) => console.error("Audio playback failed:", error));
     }
   };
 
