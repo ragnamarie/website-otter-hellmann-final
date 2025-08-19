@@ -1,35 +1,52 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import TennisVideo from "@/Components/TennisVideo";
 import TennisVideoMobileNoPlatform from "@/Components/TennisVideoMobileNoPlatform";
 
 export default function HomePage() {
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
-  const [audioInstance, setAudioInstance] = useState(null);
+  const audioRef = useRef(null);
 
+  // Initialize audio once
   useEffect(() => {
     const audio = new Audio("/Sound.mp4");
-    audio.loop = true; // Set audio to loop
-    setAudioInstance(audio);
+    audio.muted = false;
+    audioRef.current = audio;
 
-    // Clean up the audio instance when the component unmounts
+    // Clean up on unmount
     return () => {
-      if (audio) {
-        audio.pause();
-        audio.src = ""; // Clear the audio source to free up resources
-      }
+      audio.pause();
+      audio.src = "";
     };
   }, []);
 
-  const toggleAudio = () => {
-    if (audioInstance) {
-      // Toggle muted instead of pausing
-      audioInstance.muted = isAudioPlaying; // If currently playing, mute it
-      setIsAudioPlaying(!isAudioPlaying);
+  // Pause/resume audio on tab visibility change
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      const audio = audioRef.current;
+      if (!audio) return;
 
-      // Ensure it is always playing
-      audioInstance
-        .play()
-        .catch((error) => console.error("Audio playback failed:", error));
+      if (document.visibilityState === "hidden") {
+        audio.pause();
+      } else if (document.visibilityState === "visible" && isAudioPlaying) {
+        audio.play().catch(() => {});
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [isAudioPlaying]);
+
+  const toggleAudio = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (isAudioPlaying) {
+      audio.pause();
+      setIsAudioPlaying(false);
+    } else {
+      audio.play().catch(() => {});
+      setIsAudioPlaying(true);
     }
   };
 
@@ -44,8 +61,12 @@ export default function HomePage() {
 
       {/* Sound toggle */}
       <div className="sound-toggle" onClick={toggleAudio}>
-        {isAudioPlaying ? "SOUND OFF" : "SOUND ON"}
+        {isAudioPlaying ? "sound off" : "sound on"}
       </div>
+
+      <a className="top-right-link" href="https://meikeludwigs.com/about/">
+        make it stop
+      </a>
 
       <style jsx>{`
         .desktop-only {
@@ -78,17 +99,33 @@ export default function HomePage() {
           position: fixed;
           bottom: 20px;
           right: 20px;
-          color: white;
+          color: red;
           padding: 10px 20px;
           border-radius: 5px;
-          font-size: 12px;
+          font-size: 36px;
           cursor: pointer;
           z-index: 1000;
           user-select: none;
         }
 
         .sound-toggle:hover {
-          color: black;
+          color: white;
+        }
+
+        .top-right-link {
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          color: red;
+          padding: 10px 20px;
+          border-radius: 5px;
+          font-size: 36px;
+          cursor: pointer;
+          z-index: 1000;
+          user-select: none;
+        }
+        .top-right-link:hover {
+          color: white;
         }
       `}</style>
     </>
