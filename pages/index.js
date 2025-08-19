@@ -8,7 +8,6 @@ export default function HomePage() {
 
   useEffect(() => {
     const audio = new Audio("/Sound.mp4");
-    audio.loop = true; // Set audio to loop
     setAudioInstance(audio);
 
     // Clean up the audio instance when the component unmounts
@@ -44,8 +43,12 @@ export default function HomePage() {
 
       {/* Sound toggle */}
       <div className="sound-toggle" onClick={toggleAudio}>
-        {isAudioPlaying ? "SOUND OFF" : "SOUND ON"}
+        {isAudioPlaying ? "sound off" : "sound on"}
       </div>
+
+      <a className="top-right-link" href="https://meikeludwigs.com/about/">
+        make it stop
+      </a>
 
       <style jsx>{`
         .desktop-only {
@@ -78,17 +81,33 @@ export default function HomePage() {
           position: fixed;
           bottom: 20px;
           right: 20px;
-          color: white;
+          color: red;
           padding: 10px 20px;
           border-radius: 5px;
-          font-size: 12px;
+          font-size: 36px;
           cursor: pointer;
           z-index: 1000;
           user-select: none;
         }
 
         .sound-toggle:hover {
-          color: black;
+          color: white;
+        }
+
+        .top-right-link {
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          color: red;
+          padding: 10px 20px;
+          border-radius: 5px;
+          font-size: 36px;
+          cursor: pointer;
+          z-index: 1000;
+          user-select: none;
+        }
+        .top-right-link:hover {
+          color: white;
         }
       `}</style>
     </>

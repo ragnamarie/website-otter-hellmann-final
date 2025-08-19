@@ -20,7 +20,7 @@ const LetterDisplay = styled.div`
 
 export default function TennisWithRedirect() {
   const canvasRef = useRef(null);
-  const ballRef = useRef({ x: 50, y: 50, vx: 8, vy: 8 });
+  const ballRef = useRef({ x: 50, y: 50, vx: 3, vy: 3 });
   const platformRef = useRef({ x: 100 });
   const ballRadius = 15;
   const platformWidth = 150;
@@ -29,12 +29,14 @@ export default function TennisWithRedirect() {
   const [hitCount, setHitCount] = useState(0);
   const [lettersVisible, setLettersVisible] = useState(true);
   const [fadeOutLetters, setFadeOutLetters] = useState(false);
-  const [videoFinished, setVideoFinished] = useState(false); // NEW
+  const [videoFinished, setVideoFinished] = useState(false);
+  const [showMessage, setShowMessage] = useState(false);
+  const [startGame, setStartGame] = useState(false);
 
   const letters = "the   art   of    be\u0131ng human      ";
   const hitCountRef = useRef(0);
-
   const pongSoundRef = useRef(null);
+  const firstHitRef = useRef(false);
 
   useEffect(() => {
     pongSoundRef.current = new Audio("/PONG.wav");
@@ -65,7 +67,7 @@ export default function TennisWithRedirect() {
     if (newBall.x - ballRadius <= 0 || newBall.x + ballRadius >= canvas.width) {
       newBall.vx *= -1;
     }
-    if (newBall.y - ballRadius <= 0) {
+    if (newBall.y - ballRadius <= 0 && newBall.y > 0) {
       newBall.vy *= -1;
     }
     if (newBall.y + ballRadius >= canvas.height) {
@@ -84,6 +86,12 @@ export default function TennisWithRedirect() {
     ) {
       newBall.vy *= -1;
 
+      if (!firstHitRef.current) {
+        newBall.vx *= 2;
+        newBall.vy *= 2;
+        firstHitRef.current = true;
+      }
+
       if (pongSoundRef.current) {
         pongSoundRef.current.currentTime = 0;
         pongSoundRef.current.play().catch(() => {});
@@ -96,15 +104,15 @@ export default function TennisWithRedirect() {
       });
     }
 
-    // Redirect part
+    // Redirect logic
     if (hitCountRef.current > 29) {
       const centerX = canvas.width / 2 + canvas.width * 0.046;
       const centerY = canvas.height / 2 - canvas.height * 0.047;
 
       const dx = centerX - newBall.x;
       const dy = centerY - newBall.y;
-
       const speed = 0.03;
+
       newBall.vx = dx * speed;
       newBall.vy = dy * speed;
 
@@ -130,40 +138,6 @@ export default function TennisWithRedirect() {
     requestAnimationFrame(updateGame);
   }
 
-  useEffect(() => {
-    if (!videoFinished) return; // game starts only after video
-
-    const timer = setTimeout(() => {
-      const resizeCanvas = () => {
-        const canvas = canvasRef.current;
-        if (canvas) {
-          canvas.width = window.innerWidth;
-          canvas.height = window.innerHeight;
-          ballRef.current.x = canvas.width / 2;
-          ballRef.current.y = canvas.height / 4;
-          platformRef.current.x = (canvas.width - platformWidth) / 2;
-        }
-      };
-
-      resizeCanvas();
-
-      if (canvasRef.current) {
-        requestAnimationFrame(updateGame);
-        window.addEventListener("resize", resizeCanvas);
-        window.addEventListener("wheel", handleTrackpadMove, {
-          passive: false,
-        });
-      }
-
-      return () => {
-        window.removeEventListener("resize", resizeCanvas);
-        window.removeEventListener("wheel", handleTrackpadMove);
-      };
-    }, 2000); // 1 second delay
-
-    return () => clearTimeout(timer);
-  }, [videoFinished]);
-
   const renderLetters = () => {
     if (hitCount > 0 && lettersVisible) {
       return <h1>{letters.substring(0, hitCount)}</h1>;
@@ -171,9 +145,64 @@ export default function TennisWithRedirect() {
     return null;
   };
 
+  // Show "hello" after video, then white screen, then start game
+  useEffect(() => {
+    if (!videoFinished) return;
+
+    setShowMessage(true);
+
+    const messageTimer = setTimeout(() => {
+      setShowMessage(false);
+
+      const whiteScreenTimer = setTimeout(() => {
+        setStartGame(true);
+      }, 1000); // 1 second white screen
+
+      return () => clearTimeout(whiteScreenTimer);
+    }, 2000); // 2 seconds message
+
+    return () => clearTimeout(messageTimer);
+  }, [videoFinished]);
+
+  // Initialize game only after startGame is true
+  useEffect(() => {
+    if (!startGame) return;
+
+    const resizeCanvas = () => {
+      const canvas = canvasRef.current;
+      if (canvas) {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        ballRef.current.x = canvas.width / 2;
+        ballRef.current.y = ballRadius + 1;
+        platformRef.current.x = (canvas.width - platformWidth) / 2;
+      }
+    };
+
+    resizeCanvas();
+
+    if (canvasRef.current) {
+      requestAnimationFrame(updateGame);
+      window.addEventListener("resize", resizeCanvas);
+      window.addEventListener("wheel", handleTrackpadMove, { passive: false });
+    }
+
+    return () => {
+      window.removeEventListener("resize", resizeCanvas);
+      window.removeEventListener("wheel", handleTrackpadMove);
+    };
+  }, [startGame]);
+
   return (
-    <div style={{ position: "relative", textAlign: "center" }}>
-      {!videoFinished ? (
+    <div
+      style={{
+        position: "relative",
+        textAlign: "center",
+        width: "100vw",
+        height: "100vh",
+      }}
+    >
+      {!videoFinished && (
         <video
           src="/Video.mp4"
           autoPlay
@@ -182,7 +211,24 @@ export default function TennisWithRedirect() {
           onEnded={() => setVideoFinished(true)}
           style={{ width: "100%", height: "100vh", objectFit: "cover" }}
         />
-      ) : (
+      )}
+
+      {showMessage && (
+        <div
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            fontSize: "36px",
+            color: "#e6331b",
+          }}
+        >
+          start to play
+        </div>
+      )}
+
+      {startGame && (
         <>
           <canvas ref={canvasRef} style={{ zIndex: 1, position: "relative" }} />
           <LetterDisplay fadeOut={fadeOutLetters}>
