@@ -20,7 +20,8 @@ const LetterDisplay = styled.div`
 
 export default function TennisWithRedirect() {
   const canvasRef = useRef(null);
-  const ballRef = useRef({ x: 50, y: 50, vx: 8, vy: 8 });
+  // ⬇️ Ball starts slower here (3 instead of 8)
+  const ballRef = useRef({ x: 50, y: 50, vx: 3, vy: 3 });
   const platformRef = useRef({ x: 100 });
   const ballRadius = 15;
   const platformWidth = 150;
@@ -29,12 +30,13 @@ export default function TennisWithRedirect() {
   const [hitCount, setHitCount] = useState(0);
   const [lettersVisible, setLettersVisible] = useState(true);
   const [fadeOutLetters, setFadeOutLetters] = useState(false);
-  const [videoFinished, setVideoFinished] = useState(false); // NEW
+  const [videoFinished, setVideoFinished] = useState(false);
 
   const letters = "the   art   of    be\u0131ng human      ";
   const hitCountRef = useRef(0);
 
   const pongSoundRef = useRef(null);
+  const firstHitRef = useRef(false); // ⬅️ track first platform hit
 
   useEffect(() => {
     pongSoundRef.current = new Audio("/PONG.wav");
@@ -65,7 +67,8 @@ export default function TennisWithRedirect() {
     if (newBall.x - ballRadius <= 0 || newBall.x + ballRadius >= canvas.width) {
       newBall.vx *= -1;
     }
-    if (newBall.y - ballRadius <= 0) {
+    // ⬇️ safer top-wall check so ball can spawn above screen
+    if (newBall.y - ballRadius <= 0 && newBall.y > 0) {
       newBall.vy *= -1;
     }
     if (newBall.y + ballRadius >= canvas.height) {
@@ -83,6 +86,13 @@ export default function TennisWithRedirect() {
       newBall.vy > 0
     ) {
       newBall.vy *= -1;
+
+      // ⬇️ increase speed only on first hit
+      if (!firstHitRef.current) {
+        newBall.vx *= 2; // double horizontal speed
+        newBall.vy *= 2; // double vertical speed
+        firstHitRef.current = true;
+      }
 
       if (pongSoundRef.current) {
         pongSoundRef.current.currentTime = 0;
@@ -131,7 +141,7 @@ export default function TennisWithRedirect() {
   }
 
   useEffect(() => {
-    if (!videoFinished) return; // game starts only after video
+    if (!videoFinished) return;
 
     const timer = setTimeout(() => {
       const resizeCanvas = () => {
@@ -140,7 +150,7 @@ export default function TennisWithRedirect() {
           canvas.width = window.innerWidth;
           canvas.height = window.innerHeight;
           ballRef.current.x = canvas.width / 2;
-          ballRef.current.y = canvas.height / 4;
+          ballRef.current.y = ballRadius + 1; // start just inside screen
           platformRef.current.x = (canvas.width - platformWidth) / 2;
         }
       };
@@ -159,7 +169,7 @@ export default function TennisWithRedirect() {
         window.removeEventListener("resize", resizeCanvas);
         window.removeEventListener("wheel", handleTrackpadMove);
       };
-    }, 2000); // 1 second delay
+    }, 2000); // 2 second delay after video ends
 
     return () => clearTimeout(timer);
   }, [videoFinished]);
