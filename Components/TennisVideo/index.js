@@ -145,7 +145,7 @@ export default function TennisWithRedirect() {
     return null;
   };
 
-  // Show "hello" after video, then white screen, then start game
+  // Show "start to play" after video, then white screen, then start game
   useEffect(() => {
     if (!videoFinished) return;
 
