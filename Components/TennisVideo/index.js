@@ -22,7 +22,7 @@ export default function TennisWithRedirect() {
   const canvasRef = useRef(null);
   const ballRef = useRef({ x: 50, y: 50, vx: 3, vy: 3 });
   const platformRef = useRef({ x: 100 });
-  const ballRadius = 15;
+  const ballRadius = 13;
   const platformWidth = 150;
   const platformHeight = 30;
 
@@ -106,8 +106,11 @@ export default function TennisWithRedirect() {
 
     // Redirect logic
     if (hitCountRef.current > 29) {
-      const centerX = canvas.width / 2 + canvas.width * 0.046;
-      const centerY = canvas.height / 2 - canvas.height * 0.047;
+      const dotXRatio = 0.56; // % from left
+      const dotYRatio = 0.43; // % from top
+
+      const centerX = canvas.width * dotXRatio;
+      const centerY = canvas.height * dotYRatio;
 
       const dx = centerX - newBall.x;
       const dy = centerY - newBall.y;
