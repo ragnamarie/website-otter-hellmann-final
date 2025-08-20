@@ -1,6 +1,71 @@
 import { createGlobalStyle } from "styled-components";
 
 export default createGlobalStyle`
+
+  @font-face {
+    font-family: "Atico";
+    src: url("/fonts/Atico-Thin.otf") format("opentype");
+    font-weight: 100;
+    font-style: normal;
+  }
+
+  @font-face {
+    font-family: "Atico";
+    src: url("/fonts/Atico-Light.otf") format("opentype");
+    font-weight: 300;
+    font-style: normal;
+  }
+
+  @font-face {
+    font-family: "Atico";
+    src: url("/fonts/Atico-Regular.otf") format("opentype");
+    font-weight: 400;
+    font-style: normal;
+  }
+
+  @font-face {
+    font-family: "Atico";
+    src: url("/fonts/Atico-Text.otf") format("opentype");
+    font-weight: 450; /* between regular and medium */
+    font-style: normal;
+  }
+
+  @font-face {
+    font-family: "Atico";
+    src: url("/fonts/Atico-SemiBold.otf") format("opentype");
+    font-weight: 600;
+    font-style: normal;
+  }
+
+  @font-face {
+    font-family: "Atico";
+    src: url("/fonts/Atico-Bold.otf") format("opentype");
+    font-weight: 700;
+    font-style: normal;
+  }
+
+  @font-face {
+    font-family: "Atico";
+    src: url("/fonts/Atico-ExtraBold.otf") format("opentype");
+    font-weight: 800;
+    font-style: normal;
+  }
+
+  @font-face {
+    font-family: "Atico";
+    src: url("/fonts/Atico-Heavy.otf") format("opentype");
+    font-weight: 900;
+    font-style: normal;
+  }
+
+  @font-face {
+    font-family: "Atico";
+    src: url("/fonts/Atico-Black.otf") format("opentype");
+    font-weight: 950; /* heavier than 900 */
+    font-style: normal;
+  }
+
+
   *,
   *::before,
   *::after {
@@ -31,6 +96,7 @@ export default createGlobalStyle`
     font-family: "Atico", sans-serif;
     font-optical-sizing: auto;
     font-style: normal;
+    font-weight: 700;
   }
 
   main {
@@ -51,9 +117,5 @@ export default createGlobalStyle`
     text-decoration: none;
     color: black;
   }
-
-  h1 {
-    font-weight: 400;
-  } 
 
 `;
