@@ -1,39 +1,48 @@
-import { useState, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import TennisVideo from "@/Components/TennisVideo";
 import TennisVideoMobileNoPlatform from "@/Components/TennisVideoMobileNoPlatform";
 
 export default function HomePage() {
-  const [isAudioPlaying, setIsAudioPlaying] = useState(false);
-  const [audioInstance, setAudioInstance] = useState(null);
+  const [isMuted, setIsMuted] = useState(true);
+  const videoRef = useRef(null);
 
-  useEffect(() => {
-    const audio = new Audio("/Sound.mp4");
-    setAudioInstance(audio);
-
-    // Clean up the audio instance when the component unmounts
-    return () => {
-      if (audio) {
-        audio.pause();
-        audio.src = ""; // Clear the audio source to free up resources
-      }
-    };
-  }, []);
-
-  const toggleAudio = () => {
-    if (audioInstance) {
-      // Toggle muted instead of pausing
-      audioInstance.muted = isAudioPlaying; // If currently playing, mute it
-      setIsAudioPlaying(!isAudioPlaying);
-
-      // Ensure it is always playing
-      audioInstance
-        .play()
-        .catch((error) => console.error("Audio playback failed:", error));
+  const toggleMute = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !videoRef.current.muted;
+      setIsMuted(videoRef.current.muted);
     }
   };
 
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (videoRef.current) {
+        if (document.hidden) {
+          videoRef.current.pause(); // pause when leaving tab
+        } else {
+          videoRef.current.play().catch(() => {}); // resume when coming back
+        }
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, []);
+
   return (
     <>
+      {/* Background Video */}
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        muted={isMuted}
+        className="background-video"
+      >
+        <source src="/VideoForBackground.mp4" type="video/mp4" />
+      </video>
+
+      {/* Page Content */}
       <div className="desktop-only">
         <TennisVideo />
       </div>
@@ -41,9 +50,9 @@ export default function HomePage() {
         <TennisVideoMobileNoPlatform />
       </div>
 
-      {/* Sound toggle */}
-      <div className="sound-toggle" onClick={toggleAudio}>
-        {isAudioPlaying ? "sound off" : "sound on"}
+      {/* Mute toggle */}
+      <div className="sound-toggle" onClick={toggleMute}>
+        {isMuted ? "sound on" : "sound off"}
       </div>
 
       <a className="top-right-link" href="https://meikeludwigs.com/about/">
@@ -51,6 +60,16 @@ export default function HomePage() {
       </a>
 
       <style jsx>{`
+        .background-video {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          z-index: -1;
+        }
+
         .desktop-only {
           display: none;
         }
@@ -106,6 +125,7 @@ export default function HomePage() {
           z-index: 1000;
           user-select: none;
         }
+
         .top-right-link:hover {
           color: white;
         }
