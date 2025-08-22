@@ -25,12 +25,11 @@ const Video = styled.video`
   height: 100%;
   object-fit: cover;
   z-index: 0;
-  animation: ${fadeIn} 3s forwards;
 `;
 
 export default function TennisVideoMobileNoPlatform() {
   const canvasRef = useRef(null);
-  const ballRef = useRef({ x: 50, y: 50, vx: 4, vy: 4 });
+  const ballRef = useRef({ x: 50, y: 50, vx: 1.4, vy: 1.4 });
   const ballRadius = 9;
 
   const [hitCount, setHitCount] = useState(0);
@@ -153,7 +152,7 @@ export default function TennisVideoMobileNoPlatform() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         ballRef.current.x = canvas.width / 2;
-        ballRef.current.y = canvas.height / 4;
+        ballRef.current.y = ballRadius + 1; // start from top
       }
     };
 
@@ -186,13 +185,15 @@ export default function TennisVideoMobileNoPlatform() {
       }}
     >
       {/* ✅ Always play video in both portrait + landscape */}
-      <Video
-        src="/Video.mp4"
-        autoPlay
-        muted
-        playsInline
-        onEnded={() => setVideoFinished(true)}
-      />
+      {!videoFinished && (
+        <Video
+          src="/Video.mp4"
+          autoPlay
+          muted
+          playsInline
+          onEnded={() => setVideoFinished(true)}
+        />
+      )}
 
       {/* 🔄 Overlay message only if portrait */}
       {!isLandscape && (
