@@ -8,7 +8,7 @@ const fadeIn = keyframes`
 `;
 
 const LetterDisplay = styled.div`
-  font-size: 15px;
+  font-size: 4vw;
   color: #e6331b;
   position: absolute;
   top: 50%;
@@ -25,18 +25,19 @@ const Video = styled.video`
   height: 100%;
   object-fit: cover;
   z-index: 0;
-  animation: ${fadeIn} 3s forwards;
 `;
 
 export default function TennisVideoMobileNoPlatform() {
   const canvasRef = useRef(null);
-  const ballRef = useRef({ x: 50, y: 50, vx: 4, vy: 4 });
-  const ballRadius = 20;
+  const ballRef = useRef({ x: 50, y: 50, vx: 1.4, vy: 1.4 });
+  const ballRadius = 9;
 
   const [hitCount, setHitCount] = useState(0);
   const [lettersVisible] = useState(true);
-  const [showVideo, setShowVideo] = useState(false);
-  const letters = "the   art   of    being human      ";
+  const [videoFinished, setVideoFinished] = useState(false);
+  const [isLandscape, setIsLandscape] = useState(false);
+
+  const letters = "the   art   of    be\u0131ng human      ";
   const hitCountRef = useRef(0);
 
   // 🔊 Sound effect
@@ -44,11 +45,12 @@ export default function TennisVideoMobileNoPlatform() {
 
   useEffect(() => {
     pongSoundRef.current = new Audio("/pong.wav");
+    pongSoundRef.current.preload = "auto";
   }, []);
 
   function playPongSound() {
     if (pongSoundRef.current) {
-      pongSoundRef.current.currentTime = 0; // restart from beginning
+      pongSoundRef.current.currentTime = 0;
       pongSoundRef.current
         .play()
         .catch((err) => console.warn("Audio play prevented:", err));
@@ -69,7 +71,7 @@ export default function TennisVideoMobileNoPlatform() {
     if (newBall.x - ballRadius <= 0 || newBall.x + ballRadius >= canvas.width) {
       newBall.vx *= -1;
       incrementHitCount();
-      playPongSound(); // 🔊 play sound
+      playPongSound();
     }
 
     // Wall collisions (Y)
@@ -79,13 +81,16 @@ export default function TennisVideoMobileNoPlatform() {
     ) {
       newBall.vy *= -1;
       incrementHitCount();
-      playPongSound(); // 🔊 play sound
+      playPongSound();
     }
 
-    // End condition: ball moves to center
+    // ✅ End condition: ball moves to dot → redirect
     if (hitCountRef.current > 29) {
-      const centerX = canvas.width / 2;
-      const centerY = canvas.height / 2;
+      const dotXRatio = 0.56; // % from left
+      const dotYRatio = 0.43; // % from top
+
+      const centerX = canvas.width * dotXRatio;
+      const centerY = canvas.height * dotYRatio;
 
       const dx = centerX - newBall.x;
       const dy = centerY - newBall.y;
@@ -99,7 +104,7 @@ export default function TennisVideoMobileNoPlatform() {
         newBall.y = centerY;
         newBall.vx = 0;
         newBall.vy = 0;
-        setShowVideo(true);
+        window.location.href = "https://meikeludwigs.com/about";
       }
     }
 
@@ -120,14 +125,34 @@ export default function TennisVideoMobileNoPlatform() {
     });
   };
 
+  // Handle orientation detection
   useEffect(() => {
+    const handleOrientation = () => {
+      setIsLandscape(window.innerWidth > window.innerHeight);
+    };
+
+    handleOrientation(); // run once on mount
+
+    window.addEventListener("resize", handleOrientation);
+    window.addEventListener("orientationchange", handleOrientation);
+
+    return () => {
+      window.removeEventListener("resize", handleOrientation);
+      window.removeEventListener("orientationchange", handleOrientation);
+    };
+  }, []);
+
+  // Start game only after video finished
+  useEffect(() => {
+    if (!videoFinished) return;
+
     const resizeCanvas = () => {
       const canvas = canvasRef.current;
       if (canvas) {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         ballRef.current.x = canvas.width / 2;
-        ballRef.current.y = canvas.height / 4;
+        ballRef.current.y = ballRadius + 1; // start from top
       }
     };
 
@@ -141,7 +166,7 @@ export default function TennisVideoMobileNoPlatform() {
     return () => {
       window.removeEventListener("resize", resizeCanvas);
     };
-  }, []);
+  }, [videoFinished]);
 
   const renderLetters = () => {
     if (hitCount > 0 && lettersVisible) {
@@ -150,15 +175,51 @@ export default function TennisVideoMobileNoPlatform() {
     return null;
   };
 
-  const videoRef = useRef(null);
-
   return (
-    <div style={{ position: "relative", textAlign: "center" }}>
-      {showVideo && (
-        <Video ref={videoRef} src="/breathing.mp4" autoPlay muted playsInline />
+    <div
+      style={{
+        position: "relative",
+        textAlign: "center",
+        width: "100vw",
+        height: "100vh",
+      }}
+    >
+      {/* ✅ Always play video in both portrait + landscape */}
+      {!videoFinished && (
+        <Video
+          src="/Video.mp4"
+          autoPlay
+          muted
+          playsInline
+          onEnded={() => setVideoFinished(true)}
+        />
       )}
-      <canvas ref={canvasRef} style={{ zIndex: 1, position: "relative" }} />
-      <LetterDisplay>{renderLetters()}</LetterDisplay>
+
+      {/* 🔄 Overlay message only if portrait */}
+      {!isLandscape && (
+        <div
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            fontSize: "24px",
+            color: "#e6331b",
+            padding: "10px 15px",
+            borderRadius: "12px",
+          }}
+        >
+          please turn your phone {"\u21BB"}
+        </div>
+      )}
+
+      {/* 🎾 Game + letters after video finished */}
+      {videoFinished && (
+        <>
+          <canvas ref={canvasRef} style={{ zIndex: 1, position: "relative" }} />
+          <LetterDisplay>{renderLetters()}</LetterDisplay>
+        </>
+      )}
     </div>
   );
 }
