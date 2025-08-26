@@ -9,6 +9,10 @@ const LetterDisplay = styled.div`
   left: 50%;
   transform: translate(-50%, -50%);
   width: 100vw;
+  opacity: ${(props) => (props.fadeOut ? 0 : 1)};
+  animation: ${(props) => (props.fadeOut ? fadeOut : "none")} 1s forwards;
+  z-index: 2; /* ✅ put letters above canvas */
+  pointer-events: auto; /* ✅ allow clicks */
 `;
 
 const Video = styled.video`
@@ -23,18 +27,20 @@ const Video = styled.video`
 
 export default function TennisVideoMobileNoPlatform() {
   const canvasRef = useRef(null);
-  const ballRef = useRef({ x: 50, y: 50, vx: 1.4, vy: 1.4 });
+  const ballRef = useRef({ x: 50, y: 50, vx: 3, vy: 3 });
   const ballRadius = 9;
 
   const [hitCount, setHitCount] = useState(0);
   const [lettersVisible] = useState(true);
   const [videoFinished, setVideoFinished] = useState(false);
-  const letters = "the art of be\u0131ng human ";
+  const [isLandscape, setIsLandscape] = useState(false);
 
+  const letters = "the   art   of    be\u0131ng human      ";
   const hitCountRef = useRef(0);
 
   // 🔊 Sound effect
   const pongSoundRef = useRef(null);
+
   useEffect(() => {
     pongSoundRef.current = new Audio("/pong.wav");
     pongSoundRef.current.preload = "auto";
@@ -80,8 +86,10 @@ export default function TennisVideoMobileNoPlatform() {
     if (hitCountRef.current > 29) {
       const dotXRatio = 0.56; // % from left
       const dotYRatio = 0.43; // % from top
+
       const centerX = canvas.width * dotXRatio;
       const centerY = canvas.height * dotYRatio;
+
       const dx = centerX - newBall.x;
       const dy = centerY - newBall.y;
       const speed = 0.03;
@@ -94,7 +102,6 @@ export default function TennisVideoMobileNoPlatform() {
         newBall.y = centerY;
         newBall.vx = 0;
         newBall.vy = 0;
-        window.location.href = "https://meikeludwigs.com/about";
       }
     }
 
@@ -114,6 +121,23 @@ export default function TennisVideoMobileNoPlatform() {
       return newCount;
     });
   };
+
+  // Handle orientation detection
+  useEffect(() => {
+    const handleOrientation = () => {
+      setIsLandscape(window.innerWidth > window.innerHeight);
+    };
+
+    handleOrientation(); // run once on mount
+
+    window.addEventListener("resize", handleOrientation);
+    window.addEventListener("orientationchange", handleOrientation);
+
+    return () => {
+      window.removeEventListener("resize", handleOrientation);
+      window.removeEventListener("orientationchange", handleOrientation);
+    };
+  }, []);
 
   // Start game only after video finished
   useEffect(() => {
@@ -172,7 +196,14 @@ export default function TennisVideoMobileNoPlatform() {
       {videoFinished && (
         <>
           <canvas ref={canvasRef} style={{ zIndex: 1, position: "relative" }} />
-          <LetterDisplay>{renderLetters()}</LetterDisplay>
+          <LetterDisplay>
+            <a
+              href="https://meikeludwigs.com/about"
+              style={{ color: "#e6331b", textDecoration: "none" }}
+            >
+              {renderLetters()}
+            </a>
+          </LetterDisplay>
         </>
       )}
     </div>
