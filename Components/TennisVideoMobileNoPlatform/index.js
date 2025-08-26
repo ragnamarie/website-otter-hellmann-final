@@ -1,12 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import styled, { keyframes } from "styled-components";
 
-// Fade-in animation for the video
-const fadeIn = keyframes`
-  from { opacity: 0; }
-  to { opacity: 1; }
-`;
-
 const LetterDisplay = styled.div`
   font-size: 4vw;
   color: #e6331b;
@@ -15,6 +9,10 @@ const LetterDisplay = styled.div`
   left: 50%;
   transform: translate(-50%, -50%);
   width: 100vw;
+  opacity: ${(props) => (props.fadeOut ? 0 : 1)};
+  animation: ${(props) => (props.fadeOut ? fadeOut : "none")} 1s forwards;
+  z-index: 2; /* ✅ put letters above canvas */
+  pointer-events: auto; /* ✅ allow clicks */
 `;
 
 const Video = styled.video`
@@ -29,7 +27,7 @@ const Video = styled.video`
 
 export default function TennisVideoMobileNoPlatform() {
   const canvasRef = useRef(null);
-  const ballRef = useRef({ x: 50, y: 50, vx: 1.4, vy: 1.4 });
+  const ballRef = useRef({ x: 50, y: 50, vx: 3, vy: 3 });
   const ballRadius = 9;
 
   const [hitCount, setHitCount] = useState(0);
@@ -104,7 +102,6 @@ export default function TennisVideoMobileNoPlatform() {
         newBall.y = centerY;
         newBall.vx = 0;
         newBall.vy = 0;
-        window.location.href = "https://meikeludwigs.com/about";
       }
     }
 
@@ -195,29 +192,18 @@ export default function TennisVideoMobileNoPlatform() {
         />
       )}
 
-      {/* 🔄 Overlay message only if portrait */}
-      {!isLandscape && (
-        <div
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            fontSize: "24px",
-            color: "#e6331b",
-            padding: "10px 15px",
-            borderRadius: "12px",
-          }}
-        >
-          please turn your phone {"\u21BB"}
-        </div>
-      )}
-
       {/* 🎾 Game + letters after video finished */}
       {videoFinished && (
         <>
           <canvas ref={canvasRef} style={{ zIndex: 1, position: "relative" }} />
-          <LetterDisplay>{renderLetters()}</LetterDisplay>
+          <LetterDisplay>
+            <a
+              href="https://meikeludwigs.com/about"
+              style={{ color: "#e6331b", textDecoration: "none" }}
+            >
+              {renderLetters()}
+            </a>
+          </LetterDisplay>
         </>
       )}
     </div>

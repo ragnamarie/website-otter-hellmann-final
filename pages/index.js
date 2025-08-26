@@ -46,6 +46,7 @@ export default function HomePage() {
       <div className="desktop-only">
         <TennisVideo />
       </div>
+
       <div className="mobile-only">
         <TennisVideoMobileNoPlatform />
       </div>
@@ -100,10 +101,10 @@ export default function HomePage() {
           position: fixed;
           bottom: 20px;
           right: 20px;
-          color: red;
+          color: #e6331b;
           padding: 10px 20px;
           border-radius: 5px;
-          font-size: 36px;
+          font-size: 65px;
           cursor: pointer;
           z-index: 1000;
           user-select: none;
@@ -117,10 +118,10 @@ export default function HomePage() {
           position: fixed;
           top: 20px;
           right: 20px;
-          color: red;
+          color: #e6331b;
           padding: 10px 20px;
           border-radius: 5px;
-          font-size: 36px;
+          font-size: 65px;
           cursor: pointer;
           z-index: 1000;
           user-select: none;
@@ -128,6 +129,26 @@ export default function HomePage() {
 
         .top-right-link:hover {
           color: white;
+        }
+
+        /* Desktop */
+        @media (min-width: 951px) {
+          .top-right-link {
+            font-size: 65px;
+          }
+          .sound-toggle {
+            font-size: 65px;
+          }
+        }
+
+        /* Mobile */
+        @media (max-width: 950px) {
+          .top-right-link {
+            font-size: 30px;
+          }
+          .sound-toggle {
+            font-size: 30px;
+          }
         }
       `}</style>
     </>
