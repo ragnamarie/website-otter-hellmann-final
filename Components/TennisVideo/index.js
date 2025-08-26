@@ -1,11 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import styled, { keyframes } from "styled-components";
 
-const fadeOut = keyframes`
-  from { opacity: 1; }
-  to { opacity: 0; }
-`;
-
 const LetterDisplay = styled.div`
   font-size: 4vw;
   color: #e6331b;
@@ -16,6 +11,8 @@ const LetterDisplay = styled.div`
   width: 100vw;
   opacity: ${(props) => (props.fadeOut ? 0 : 1)};
   animation: ${(props) => (props.fadeOut ? fadeOut : "none")} 1s forwards;
+  z-index: 2; /* ✅ put letters above canvas */
+  pointer-events: auto; /* ✅ allow clicks */
 `;
 
 export default function TennisWithRedirect() {
@@ -104,7 +101,9 @@ export default function TennisWithRedirect() {
       });
     }
 
-    // Redirect logic
+    // 🎯 Game Over
+    let dx = 0;
+    let dy = 0;
     if (hitCountRef.current > 29) {
       const dotXRatio = 0.56; // % from left
       const dotYRatio = 0.43; // % from top
@@ -112,8 +111,8 @@ export default function TennisWithRedirect() {
       const centerX = canvas.width * dotXRatio;
       const centerY = canvas.height * dotYRatio;
 
-      const dx = centerX - newBall.x;
-      const dy = centerY - newBall.y;
+      dx = centerX - newBall.x;
+      dy = centerY - newBall.y;
       const speed = 0.03;
 
       newBall.vx = dx * speed;
@@ -124,18 +123,21 @@ export default function TennisWithRedirect() {
         newBall.y = centerY;
         newBall.vx = 0;
         newBall.vy = 0;
-        window.location.href = "https://meikeludwigs.com/about";
       }
     }
 
-    // Draw ball
+    // 🟠 Draw ball
     ctx.fillStyle = "#e6331b";
     ctx.beginPath();
     ctx.arc(newBall.x, newBall.y, ballRadius, 0, Math.PI * 2);
     ctx.fill();
 
-    // Draw platform
-    ctx.fillStyle = "#e6331b";
+    // 🟠 Draw platform (red → white after game ends)
+    if (hitCountRef.current > 29) {
+      ctx.fillStyle = "#ffffff"; // weiß nach Ziel erreicht
+    } else {
+      ctx.fillStyle = "#e6331b"; // normal rot
+    }
     ctx.fillRect(platformX, platformY, platformWidth, platformHeight);
 
     requestAnimationFrame(updateGame);
@@ -223,7 +225,7 @@ export default function TennisWithRedirect() {
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            fontSize: "36px",
+            fontSize: "65px",
             color: "#e6331b",
           }}
         >
@@ -235,7 +237,18 @@ export default function TennisWithRedirect() {
         <>
           <canvas ref={canvasRef} style={{ zIndex: 1, position: "relative" }} />
           <LetterDisplay fadeOut={fadeOutLetters}>
-            {renderLetters()}
+            {hitCount > 0 && lettersVisible && (
+              <a
+                href="https://meikeludwigs.com/about"
+                style={{
+                  textDecoration: "none",
+                  color: "#e6331b",
+                  cursor: "pointer",
+                }}
+              >
+                <h1>{letters.substring(0, hitCount)}</h1>
+              </a>
+            )}
           </LetterDisplay>
         </>
       )}

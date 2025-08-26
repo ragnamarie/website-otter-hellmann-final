@@ -100,10 +100,10 @@ export default function HomePage() {
           position: fixed;
           bottom: 20px;
           right: 20px;
-          color: red;
+          color: #e6331b;
           padding: 10px 20px;
           border-radius: 5px;
-          font-size: 36px;
+          font-size: 65px;
           cursor: pointer;
           z-index: 1000;
           user-select: none;
@@ -117,10 +117,10 @@ export default function HomePage() {
           position: fixed;
           top: 20px;
           right: 20px;
-          color: red;
+          color: #e6331b;
           padding: 10px 20px;
           border-radius: 5px;
-          font-size: 36px;
+          font-size: 65px;
           cursor: pointer;
           z-index: 1000;
           user-select: none;
