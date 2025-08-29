@@ -19,7 +19,7 @@ export default function TennisWithRedirect() {
   const canvasRef = useRef(null);
   const ballRef = useRef({ x: 50, y: 50, vx: 3, vy: 3 });
   const platformRef = useRef({ x: 100 });
-  const platformWidth = 150;
+  const platformWidth = 180;
   const platformHeight = 30;
 
   // ⭕ radius is dynamic now
