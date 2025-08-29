@@ -19,9 +19,11 @@ export default function TennisWithRedirect() {
   const canvasRef = useRef(null);
   const ballRef = useRef({ x: 50, y: 50, vx: 3, vy: 3 });
   const platformRef = useRef({ x: 100 });
-  const ballRadius = 13;
   const platformWidth = 150;
   const platformHeight = 30;
+
+  // ⭕ radius is dynamic now
+  const ballRadiusRef = useRef(40);
 
   const [hitCount, setHitCount] = useState(0);
   const [lettersVisible, setLettersVisible] = useState(true);
@@ -61,13 +63,16 @@ export default function TennisWithRedirect() {
     newBall.y += newBall.vy;
 
     // Wall collisions
-    if (newBall.x - ballRadius <= 0 || newBall.x + ballRadius >= canvas.width) {
+    if (
+      newBall.x - ballRadiusRef.current <= 0 ||
+      newBall.x + ballRadiusRef.current >= canvas.width
+    ) {
       newBall.vx *= -1;
     }
-    if (newBall.y - ballRadius <= 0 && newBall.y > 0) {
+    if (newBall.y - ballRadiusRef.current <= 0 && newBall.y > 0) {
       newBall.vy *= -1;
     }
-    if (newBall.y + ballRadius >= canvas.height) {
+    if (newBall.y + ballRadiusRef.current >= canvas.height) {
       newBall.vy *= -1;
     }
 
@@ -76,7 +81,7 @@ export default function TennisWithRedirect() {
 
     // Platform collision
     if (
-      newBall.y + ballRadius >= platformY &&
+      newBall.y + ballRadiusRef.current >= platformY &&
       newBall.x >= platformX &&
       newBall.x <= platformX + platformWidth &&
       newBall.vy > 0
@@ -101,18 +106,21 @@ export default function TennisWithRedirect() {
       });
     }
 
-    // 🎯 Game Over
-    let dx = 0;
-    let dy = 0;
+    // 🎯 Game Over behavior
     if (hitCountRef.current > 29) {
-      const dotXRatio = 0.56; // % from left
-      const dotYRatio = 0.43; // % from top
+      // ⭕ Smooth shrink radius toward 13
+      if (ballRadiusRef.current > 13) {
+        ballRadiusRef.current -= 0.5; // shrink speed
+        if (ballRadiusRef.current < 13) ballRadiusRef.current = 13;
+      }
 
+      const dotXRatio = 0.56;
+      const dotYRatio = 0.43;
       const centerX = canvas.width * dotXRatio;
       const centerY = canvas.height * dotYRatio;
 
-      dx = centerX - newBall.x;
-      dy = centerY - newBall.y;
+      const dx = centerX - newBall.x;
+      const dy = centerY - newBall.y;
       const speed = 0.03;
 
       newBall.vx = dx * speed;
@@ -129,14 +137,14 @@ export default function TennisWithRedirect() {
     // 🟠 Draw ball
     ctx.fillStyle = "#e6331b";
     ctx.beginPath();
-    ctx.arc(newBall.x, newBall.y, ballRadius, 0, Math.PI * 2);
+    ctx.arc(newBall.x, newBall.y, ballRadiusRef.current, 0, Math.PI * 2);
     ctx.fill();
 
     // 🟠 Draw platform (red → white after game ends)
     if (hitCountRef.current > 29) {
-      ctx.fillStyle = "#ffffff"; // weiß nach Ziel erreicht
+      ctx.fillStyle = "#ffffff";
     } else {
-      ctx.fillStyle = "#e6331b"; // normal rot
+      ctx.fillStyle = "#e6331b";
     }
     ctx.fillRect(platformX, platformY, platformWidth, platformHeight);
 
@@ -161,10 +169,10 @@ export default function TennisWithRedirect() {
 
       const whiteScreenTimer = setTimeout(() => {
         setStartGame(true);
-      }, 1000); // 1 second white screen
+      }, 1000);
 
       return () => clearTimeout(whiteScreenTimer);
-    }, 2000); // 2 seconds message
+    }, 2000);
 
     return () => clearTimeout(messageTimer);
   }, [videoFinished]);
@@ -179,7 +187,7 @@ export default function TennisWithRedirect() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         ballRef.current.x = canvas.width / 2;
-        ballRef.current.y = ballRadius + 1;
+        ballRef.current.y = ballRadiusRef.current + 1;
         platformRef.current.x = (canvas.width - platformWidth) / 2;
       }
     };
