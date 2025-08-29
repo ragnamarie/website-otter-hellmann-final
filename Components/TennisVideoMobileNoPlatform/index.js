@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import styled, { keyframes } from "styled-components";
+import styled from "styled-components";
 
 const LetterDisplay = styled.div`
   font-size: 4vw;
@@ -9,10 +9,8 @@ const LetterDisplay = styled.div`
   left: 50%;
   transform: translate(-50%, -50%);
   width: 100vw;
-  opacity: ${(props) => (props.fadeOut ? 0 : 1)};
-  animation: ${(props) => (props.fadeOut ? fadeOut : "none")} 1s forwards;
-  z-index: 2; /* ✅ put letters above canvas */
-  pointer-events: auto; /* ✅ allow clicks */
+  z-index: 2;
+  pointer-events: auto;
 `;
 
 const Video = styled.video`
@@ -28,7 +26,9 @@ const Video = styled.video`
 export default function TennisVideoMobileNoPlatform() {
   const canvasRef = useRef(null);
   const ballRef = useRef({ x: 50, y: 50, vx: 3, vy: 3 });
-  const ballRadius = 9;
+
+  // ⭕ dynamic radius (starts at 40, shrinks down depending on orientation)
+  const ballRadiusRef = useRef(40);
 
   const [hitCount, setHitCount] = useState(0);
   const [lettersVisible] = useState(true);
@@ -66,7 +66,10 @@ export default function TennisVideoMobileNoPlatform() {
     newBall.y += newBall.vy;
 
     // Wall collisions (X)
-    if (newBall.x - ballRadius <= 0 || newBall.x + ballRadius >= canvas.width) {
+    if (
+      newBall.x - ballRadiusRef.current <= 0 ||
+      newBall.x + ballRadiusRef.current >= canvas.width
+    ) {
       newBall.vx *= -1;
       incrementHitCount();
       playPongSound();
@@ -74,18 +77,30 @@ export default function TennisVideoMobileNoPlatform() {
 
     // Wall collisions (Y)
     if (
-      newBall.y - ballRadius <= 0 ||
-      newBall.y + ballRadius >= canvas.height
+      newBall.y - ballRadiusRef.current <= 0 ||
+      newBall.y + ballRadiusRef.current >= canvas.height
     ) {
       newBall.vy *= -1;
       incrementHitCount();
       playPongSound();
     }
 
-    // ✅ End condition: ball moves to dot → redirect
+    // ✅ End condition: shrink + move to dot
     if (hitCountRef.current > 29) {
-      const dotXRatio = 0.56; // % from left
-      const dotYRatio = 0.43; // % from top
+      // pick shrink target based on orientation
+      const targetRadius = isLandscape ? 6 : 3;
+
+      // Smooth shrink radius toward target
+      if (ballRadiusRef.current > targetRadius) {
+        ballRadiusRef.current -= 0.5; // shrink rate
+        if (ballRadiusRef.current < targetRadius) {
+          ballRadiusRef.current = targetRadius;
+        }
+      }
+
+      // 🎯 Final position depends on orientation
+      const dotXRatio = isLandscape ? 0.59 : 0.56;
+      const dotYRatio = isLandscape ? 0.44 : 0.48;
 
       const centerX = canvas.width * dotXRatio;
       const centerY = canvas.height * dotYRatio;
@@ -105,10 +120,10 @@ export default function TennisVideoMobileNoPlatform() {
       }
     }
 
-    // Draw ball
+    // 🎾 Draw ball
     ctx.fillStyle = "#e6331b";
     ctx.beginPath();
-    ctx.arc(newBall.x, newBall.y, ballRadius, 0, Math.PI * 2);
+    ctx.arc(newBall.x, newBall.y, ballRadiusRef.current, 0, Math.PI * 2);
     ctx.fill();
 
     requestAnimationFrame(updateGame);
@@ -128,7 +143,7 @@ export default function TennisVideoMobileNoPlatform() {
       setIsLandscape(window.innerWidth > window.innerHeight);
     };
 
-    handleOrientation(); // run once on mount
+    handleOrientation();
 
     window.addEventListener("resize", handleOrientation);
     window.addEventListener("orientationchange", handleOrientation);
@@ -149,7 +164,7 @@ export default function TennisVideoMobileNoPlatform() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         ballRef.current.x = canvas.width / 2;
-        ballRef.current.y = ballRadius + 1; // start from top
+        ballRef.current.y = ballRadiusRef.current + 1; // start from top
       }
     };
 
@@ -181,7 +196,7 @@ export default function TennisVideoMobileNoPlatform() {
         height: "100vh",
       }}
     >
-      {/* ✅ Always play video in both portrait + landscape */}
+      {/* ✅ Video before game */}
       {!videoFinished && (
         <Video
           src="/Video.mp4"
@@ -192,7 +207,7 @@ export default function TennisVideoMobileNoPlatform() {
         />
       )}
 
-      {/* 🎾 Game + letters after video finished */}
+      {/* 🎮 Game + letters after video finished */}
       {videoFinished && (
         <>
           <canvas ref={canvasRef} style={{ zIndex: 1, position: "relative" }} />
