@@ -19,7 +19,7 @@ export default function TennisWithRedirect() {
   const canvasRef = useRef(null);
   const ballRef = useRef({ x: 50, y: 50, vx: 3, vy: 3 });
   const platformRef = useRef({ x: 100 });
-  const platformWidth = 150;
+  const platformWidth = 180;
   const platformHeight = 30;
 
   // ⭕ radius is dynamic now
@@ -79,31 +79,59 @@ export default function TennisWithRedirect() {
     const platformX = platformRef.current.x;
     const platformY = canvas.height - platformHeight - 100;
 
-    // Platform collision
-    if (
-      newBall.y + ballRadiusRef.current >= platformY &&
-      newBall.x >= platformX &&
-      newBall.x <= platformX + platformWidth &&
-      newBall.vy > 0
-    ) {
-      newBall.vy *= -1;
+    // Platform rectangle
+    const platformRect = {
+      x: platformX,
+      y: platformY,
+      width: platformWidth,
+      height: platformHeight,
+    };
 
-      if (!firstHitRef.current) {
-        newBall.vx *= 2;
-        newBall.vy *= 2;
-        firstHitRef.current = true;
+    // Circle–rectangle collision detection
+    const closestX = Math.max(
+      platformRect.x,
+      Math.min(newBall.x, platformRect.x + platformRect.width)
+    );
+    const closestY = Math.max(
+      platformRect.y,
+      Math.min(newBall.y, platformRect.y + platformRect.height)
+    );
+
+    const dx = newBall.x - closestX;
+    const dy = newBall.y - closestY;
+    const distanceSquared = dx * dx + dy * dy;
+
+    if (distanceSquared <= ballRadiusRef.current * ballRadiusRef.current) {
+      // Collision happened → decide bounce direction
+      if (Math.abs(dx) > Math.abs(dy)) {
+        // Left / right collision
+        newBall.vx *= -1;
+        newBall.x += dx > 0 ? 5 : -5; // push ball out
+      } else {
+        // Top / bottom collision
+        newBall.vy *= -1;
+        newBall.y += dy > 0 ? 5 : -5; // push ball out
+
+        // ✅ Only count hits if it's a TOP collision
+        if (dy < 0 && newBall.vy < 0) {
+          if (!firstHitRef.current) {
+            newBall.vx *= 2;
+            newBall.vy *= 2;
+            firstHitRef.current = true;
+          }
+
+          if (pongSoundRef.current) {
+            pongSoundRef.current.currentTime = 0;
+            pongSoundRef.current.play().catch(() => {});
+          }
+
+          setHitCount((prevCount) => {
+            const newCount = Math.min(prevCount + 6, letters.length);
+            hitCountRef.current = newCount;
+            return newCount;
+          });
+        }
       }
-
-      if (pongSoundRef.current) {
-        pongSoundRef.current.currentTime = 0;
-        pongSoundRef.current.play().catch(() => {});
-      }
-
-      setHitCount((prevCount) => {
-        const newCount = Math.min(prevCount + 6, letters.length);
-        hitCountRef.current = newCount;
-        return newCount;
-      });
     }
 
     // 🎯 Game Over behavior
