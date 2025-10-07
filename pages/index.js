@@ -56,9 +56,14 @@ export default function HomePage() {
         {isMuted ? "sound on" : "sound off"}
       </div>
 
-      <a className="top-right-link" href="https://meikeludwigs.com/about/">
+      <div
+        className="top-right-link"
+        onClick={() => {
+          window.top.location.href = "https://meikeludwigs.com/about/";
+        }}
+      >
         make it stop
-      </a>
+      </div>
 
       <style jsx>{`
         .background-video {
