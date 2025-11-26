@@ -1,15 +1,18 @@
 import { useState, useRef, useEffect } from "react";
 import TennisVideo from "@/Components/TennisVideo";
 import TennisVideoMobileNoPlatform from "@/Components/TennisVideoMobileNoPlatform";
+import Subtitles from "@/Components/Subtitles";
 
 export default function HomePage() {
-  const [isMuted, setIsMuted] = useState(true);
   const videoRef = useRef(null);
+  const [isMuted, setIsMuted] = useState(true);
 
   const toggleMute = () => {
     if (videoRef.current) {
       videoRef.current.muted = !videoRef.current.muted;
       setIsMuted(videoRef.current.muted);
+    } else {
+      setIsMuted((prev) => !prev);
     }
   };
 
@@ -17,9 +20,9 @@ export default function HomePage() {
     const handleVisibilityChange = () => {
       if (videoRef.current) {
         if (document.hidden) {
-          videoRef.current.pause(); // pause when leaving tab
+          videoRef.current.pause();
         } else {
-          videoRef.current.play().catch(() => {}); // resume when coming back
+          videoRef.current.play().catch(() => {});
         }
       }
     };
@@ -42,6 +45,11 @@ export default function HomePage() {
         <source src="/VideoForBackground.mp4" type="video/mp4" />
       </video>
 
+      {/* Subtitles */}
+      <div className="subtitles-container">
+        <Subtitles />
+      </div>
+
       {/* Page Content */}
       <div className="desktop-only">
         <TennisVideo />
@@ -51,11 +59,12 @@ export default function HomePage() {
         <TennisVideoMobileNoPlatform />
       </div>
 
-      {/* Mute toggle */}
+      {/* Sound toggle */}
       <div className="sound-toggle" onClick={toggleMute}>
         {isMuted ? "sound on" : "sound off"}
       </div>
 
+      {/* Top right link */}
       <div
         className="top-right-link"
         onClick={() => {
@@ -102,6 +111,16 @@ export default function HomePage() {
           }
         }
 
+        /* Subtitles fixed at bottom above video */
+        .subtitles-container {
+          position: fixed;
+          bottom: 100px;
+          width: 100%;
+          text-align: center;
+          z-index: 900;
+          pointer-events: none;
+        }
+
         .sound-toggle {
           position: fixed;
           bottom: 20px;
@@ -136,7 +155,6 @@ export default function HomePage() {
           color: white;
         }
 
-        /* Desktop */
         @media (min-width: 951px) {
           .top-right-link {
             font-size: 65px;
@@ -146,7 +164,6 @@ export default function HomePage() {
           }
         }
 
-        /* Mobile */
         @media (max-width: 950px) {
           .top-right-link {
             font-size: 30px;
