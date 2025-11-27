@@ -32,7 +32,7 @@ const SubtitleContainerMobile = styled.div`
   pointer-events: none;
 
   position: fixed;
-  top: 40%;
+  top: 50%;
   left: 50%;
   transform: translateX(-50%);
 
