@@ -2,29 +2,24 @@ import { useEffect, useState } from "react";
 import styled from "styled-components";
 
 const SubtitleContainer = styled.div`
-  color: #e6331b; /* red text */
+  color: #e6331b;
   font-size: 2vw;
   text-align: center;
   line-height: 1.6;
   max-width: 90%;
   margin: 0 auto;
-  pointer-events: none; /* allow clicks to pass through */
+  pointer-events: none;
 
   position: fixed;
-  top: 50%; /* vertical center */
-  left: 50%; /* horizontal center */
-  transform: translate(
-    -50%,
-    -50%
-  ); /* perfectly center both vertically and horizontally */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 
-  width: auto; /* let it shrink to fit content */
   z-index: 900;
-  transition: opacity 0.5s ease; /* smooth fade */
+  transition: opacity 0.5s ease;
 `;
 
 export default function Subtitles() {
-  // Placeholder sentences for now
   const subtitles = [
     "In a world of permanent stimulation, our minds are constantly under attack.",
     "Notifications never stop, social media feeds are endless, and agitation takes hold.",
@@ -36,6 +31,7 @@ export default function Subtitles() {
     "Find your purpose.",
     "Manifest your dreams.",
     "Become great.",
+    "",
     "This exaltation of doing over being is a fine representation of the distorted logic that drives our lives.",
     "One that discredits stillness and simplicity.",
     "What are you doing?",
@@ -46,37 +42,54 @@ export default function Subtitles() {
     "no time for emotions, expression, or assimilation.",
     "But there is another way,",
     "and it is time to step out of the hamster wheel.",
-    "In a society that makes us aggressively pursue more.",
-    "More success, more excitement, more validation.",
+    "In a society that makes us aggressively pursue more–",
+    "more success, more excitement, more validation.",
     "We should aim for less",
     "and reconnect with the present moment.",
     "It is time to remember the art of being human.",
   ];
 
+  const splitIndex = 10;
+
+  const groupA = subtitles.slice(0, splitIndex);
+  const groupB = subtitles.slice(splitIndex);
+
+  const intervalA = 36500 / groupA.length;
+  const intervalB = 38000 / groupB.length;
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [visible, setVisible] = useState(true);
+  const [finished, setFinished] = useState(false);
 
   useEffect(() => {
-    const totalDuration = 100000; // 1:40 minutes = 100 seconds
-    const intervalDuration = totalDuration / subtitles.length;
+    if (finished) return;
+
+    const lastIndex = subtitles.length - 1;
+    const intervalTime = currentIndex < splitIndex ? intervalA : intervalB;
 
     const interval = setInterval(() => {
-      // Fade out current subtitle
       setVisible(false);
 
-      // After fade, show next subtitle
       setTimeout(() => {
         setCurrentIndex((prev) => {
-          if (prev < subtitles.length - 1) return prev + 1;
-          clearInterval(interval); // stop at the last subtitle
+          // Not yet at the last one → go to next
+          if (prev < lastIndex) {
+            setVisible(true); // only fade back in if NOT the last one
+            return prev + 1;
+          }
+
+          // Last subtitle: fade out, then finish
+          setTimeout(() => setFinished(true), 500);
+          clearInterval(interval);
           return prev;
         });
-        setVisible(true);
-      }, 500); // match CSS transition duration
-    }, intervalDuration);
+      }, 500);
+    }, intervalTime);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [currentIndex, finished]);
+
+  if (finished) return null;
 
   return (
     <SubtitleContainer style={{ opacity: visible ? 1 : 0 }}>
