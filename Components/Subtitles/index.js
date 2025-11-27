@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import styled from "styled-components";
 
-const SubtitleContainer = styled.div`
+const SubtitleContainerDesktop = styled.div`
   color: #e6331b;
   font-size: 2vw;
   text-align: center;
@@ -17,6 +17,31 @@ const SubtitleContainer = styled.div`
 
   z-index: 900;
   transition: opacity 0.5s ease;
+
+  @media (max-width: 950px) {
+    display: none; /* hide on mobile */
+  }
+`;
+
+const SubtitleContainerMobile = styled.div`
+  color: #e6331b;
+  font-size: 24px; /* bigger for mobile */
+  text-align: center;
+  line-height: 1.5;
+  width: 90%;
+  pointer-events: none;
+
+  position: fixed;
+  top: 50%; /* slightly higher for mobile readability */
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  z-index: 900;
+  transition: opacity 0.5s ease;
+
+  @media (min-width: 951px) {
+    display: none; /* hide on desktop */
+  }
 `;
 
 export default function Subtitles() {
@@ -92,8 +117,14 @@ export default function Subtitles() {
   if (finished) return null;
 
   return (
-    <SubtitleContainer style={{ opacity: visible ? 1 : 0 }}>
-      {subtitles[currentIndex]}
-    </SubtitleContainer>
+    <>
+      <SubtitleContainerDesktop style={{ opacity: visible ? 1 : 0 }}>
+        {subtitles[currentIndex]}
+      </SubtitleContainerDesktop>
+
+      <SubtitleContainerMobile style={{ opacity: visible ? 1 : 0 }}>
+        {subtitles[currentIndex]}
+      </SubtitleContainerMobile>
+    </>
   );
 }

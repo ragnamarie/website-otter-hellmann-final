@@ -15,7 +15,7 @@ const LetterDisplay = styled.div`
   pointer-events: auto; /* ✅ allow clicks */
 `;
 
-export default function TennisWithRedirect() {
+export default function TennisVideo() {
   const canvasRef = useRef(null);
   const ballRef = useRef({ x: 50, y: 50, vx: 3, vy: 3 });
   const platformRef = useRef({ x: 100 });
