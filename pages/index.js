@@ -70,7 +70,7 @@ export default function HomePage() {
         }
 
         .top-right-link:hover {
-          color: white;
+          color: #e6331bcc;
         }
 
         @media (min-width: 951px) {
