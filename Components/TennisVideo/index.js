@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import styled, { keyframes } from "styled-components";
 
+const fadeOut = keyframes`
+  to {
+    opacity: 0;
+  }
+`;
+
 const LetterDisplay = styled.div`
   font-size: 4vw;
   color: #e6331b;
@@ -22,7 +28,6 @@ export default function TennisVideo() {
   const platformWidth = 180;
   const platformHeight = 30;
 
-  // ⭕ radius is dynamic now
   const ballRadiusRef = useRef(40);
 
   const [hitCount, setHitCount] = useState(0);
@@ -102,17 +107,13 @@ export default function TennisVideo() {
     const distanceSquared = dx * dx + dy * dy;
 
     if (distanceSquared <= ballRadiusRef.current * ballRadiusRef.current) {
-      // Collision happened → decide bounce direction
       if (Math.abs(dx) > Math.abs(dy)) {
-        // Left / right collision
         newBall.vx *= -1;
-        newBall.x += dx > 0 ? 5 : -5; // push ball out
+        newBall.x += dx > 0 ? 5 : -5;
       } else {
-        // Top / bottom collision
         newBall.vy *= -1;
-        newBall.y += dy > 0 ? 5 : -5; // push ball out
+        newBall.y += dy > 0 ? 5 : -5;
 
-        // ✅ Only count hits if it's a TOP collision
         if (dy < 0 && newBall.vy < 0) {
           if (!firstHitRef.current) {
             newBall.vx *= 2;
@@ -134,11 +135,9 @@ export default function TennisVideo() {
       }
     }
 
-    // 🎯 Game Over behavior
     if (hitCountRef.current > 29) {
-      // ⭕ Smooth shrink radius toward 13
       if (ballRadiusRef.current > 13) {
-        ballRadiusRef.current -= 0.5; // shrink speed
+        ballRadiusRef.current -= 0.5;
         if (ballRadiusRef.current < 13) ballRadiusRef.current = 13;
       }
 
@@ -162,18 +161,12 @@ export default function TennisVideo() {
       }
     }
 
-    // 🟠 Draw ball
     ctx.fillStyle = "#e6331b";
     ctx.beginPath();
     ctx.arc(newBall.x, newBall.y, ballRadiusRef.current, 0, Math.PI * 2);
     ctx.fill();
 
-    // 🟠 Draw platform (red → white after game ends)
-    if (hitCountRef.current > 29) {
-      ctx.fillStyle = "#ffffff";
-    } else {
-      ctx.fillStyle = "#e6331b";
-    }
+    ctx.fillStyle = hitCountRef.current > 29 ? "#ffffff" : "#e6331b";
     ctx.fillRect(platformX, platformY, platformWidth, platformHeight);
 
     requestAnimationFrame(updateGame);
@@ -186,7 +179,25 @@ export default function TennisVideo() {
     return null;
   };
 
-  // Show "start to play" after video, then white screen, then start game
+  // ✅ Show "start to play" at 1:28 of the video
+  useEffect(() => {
+    const video = document.querySelector("video");
+    if (!video) return;
+
+    const handleTimeUpdate = () => {
+      if (!videoFinished && video.currentTime >= 88) {
+        // 88s = 1:28
+        setVideoFinished(true);
+      }
+    };
+
+    video.addEventListener("timeupdate", handleTimeUpdate);
+    return () => {
+      video.removeEventListener("timeupdate", handleTimeUpdate);
+    };
+  }, [videoFinished]);
+
+  // Show message, then white screen, then start game
   useEffect(() => {
     if (!videoFinished) return;
 
@@ -205,7 +216,7 @@ export default function TennisVideo() {
     return () => clearTimeout(messageTimer);
   }, [videoFinished]);
 
-  // Initialize game only after startGame is true
+  // Initialize game after startGame
   useEffect(() => {
     if (!startGame) return;
 
@@ -245,11 +256,10 @@ export default function TennisVideo() {
     >
       {!videoFinished && (
         <video
-          src="/Video.mp4"
+          src="/VideoWithSound.mp4"
           autoPlay
           muted
           playsInline
-          onEnded={() => setVideoFinished(true)}
           style={{ width: "100%", height: "100vh", objectFit: "cover" }}
         />
       )}

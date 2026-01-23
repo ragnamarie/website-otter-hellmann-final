@@ -67,7 +67,7 @@ export default function Subtitles() {
     "no time for emotions, expression, or assimilation.",
     "But there is another way,",
     "and it is time to step out of the hamster wheel.",
-    "In a society that makes us aggressively pursue more–",
+    "In a society that makes us aggressively pursue more –",
     "more success, more excitement, more validation.",
     "We should aim for less",
     "and reconnect with the present moment.",
