@@ -17,23 +17,21 @@ const LetterDisplay = styled.div`
   width: 100vw;
   opacity: ${(props) => (props.fadeOut ? 0 : 1)};
   animation: ${(props) => (props.fadeOut ? fadeOut : "none")} 1s forwards;
-  z-index: 2; /* ✅ put letters above canvas */
-  pointer-events: auto; /* ✅ allow clicks */
+  z-index: 2;
+  pointer-events: auto;
 `;
 
-export default function TennisVideo() {
+export default function TennisVideo({ muted }) {
   const canvasRef = useRef(null);
   const ballRef = useRef({ x: 50, y: 50, vx: 3, vy: 3 });
   const platformRef = useRef({ x: 100 });
   const platformWidth = 180;
   const platformHeight = 30;
-
   const ballRadiusRef = useRef(40);
 
   const [hitCount, setHitCount] = useState(0);
   const [lettersVisible, setLettersVisible] = useState(true);
   const [fadeOutLetters, setFadeOutLetters] = useState(false);
-  const [videoFinished, setVideoFinished] = useState(false);
   const [showMessage, setShowMessage] = useState(false);
   const [startGame, setStartGame] = useState(false);
 
@@ -41,6 +39,7 @@ export default function TennisVideo() {
   const hitCountRef = useRef(0);
   const pongSoundRef = useRef(null);
   const firstHitRef = useRef(false);
+  const triggeredRef = useRef(false); // ensure 88s logic runs only once
 
   useEffect(() => {
     pongSoundRef.current = new Audio("/PONG.wav");
@@ -84,7 +83,6 @@ export default function TennisVideo() {
     const platformX = platformRef.current.x;
     const platformY = canvas.height - platformHeight - 100;
 
-    // Platform rectangle
     const platformRect = {
       x: platformX,
       y: platformY,
@@ -92,7 +90,6 @@ export default function TennisVideo() {
       height: platformHeight,
     };
 
-    // Circle–rectangle collision detection
     const closestX = Math.max(
       platformRect.x,
       Math.min(newBall.x, platformRect.x + platformRect.width)
@@ -172,51 +169,30 @@ export default function TennisVideo() {
     requestAnimationFrame(updateGame);
   }
 
-  const renderLetters = () => {
-    if (hitCount > 0 && lettersVisible) {
-      return <h1>{letters.substring(0, hitCount)}</h1>;
-    }
-    return null;
-  };
-
-  // ✅ Show "start to play" at 1:28 of the video
+  // Trigger logic once at 88 seconds without stopping video
   useEffect(() => {
     const video = document.querySelector("video");
     if (!video) return;
 
     const handleTimeUpdate = () => {
-      if (!videoFinished && video.currentTime >= 88) {
-        // 88s = 1:28
-        setVideoFinished(true);
+      if (!triggeredRef.current && video.currentTime >= 88) {
+        triggeredRef.current = true; // run only once
+        setShowMessage(true);
+
+        const messageTimer = setTimeout(() => {
+          setShowMessage(false);
+
+          const whiteScreenTimer = setTimeout(() => {
+            setStartGame(true);
+          }, 1000);
+        }, 2000);
       }
     };
 
     video.addEventListener("timeupdate", handleTimeUpdate);
-    return () => {
-      video.removeEventListener("timeupdate", handleTimeUpdate);
-    };
-  }, [videoFinished]);
+    return () => video.removeEventListener("timeupdate", handleTimeUpdate);
+  }, []);
 
-  // Show message, then white screen, then start game
-  useEffect(() => {
-    if (!videoFinished) return;
-
-    setShowMessage(true);
-
-    const messageTimer = setTimeout(() => {
-      setShowMessage(false);
-
-      const whiteScreenTimer = setTimeout(() => {
-        setStartGame(true);
-      }, 1000);
-
-      return () => clearTimeout(whiteScreenTimer);
-    }, 2000);
-
-    return () => clearTimeout(messageTimer);
-  }, [videoFinished]);
-
-  // Initialize game after startGame
   useEffect(() => {
     if (!startGame) return;
 
@@ -254,15 +230,22 @@ export default function TennisVideo() {
         height: "100vh",
       }}
     >
-      {!videoFinished && (
-        <video
-          src="/VideoWithSound.mp4"
-          autoPlay
-          muted
-          playsInline
-          style={{ width: "100%", height: "100vh", objectFit: "cover" }}
-        />
-      )}
+      {/* Video always visible, even after 88s */}
+      <video
+        src="/VideoWithSound.mp4"
+        autoPlay
+        muted={muted}
+        playsInline
+        style={{
+          width: "100%",
+          height: "100vh",
+          objectFit: "cover",
+          position: "absolute",
+          top: 0,
+          left: 0,
+          zIndex: 0, // behind everything
+        }}
+      />
 
       {showMessage && (
         <div
@@ -281,7 +264,14 @@ export default function TennisVideo() {
 
       {startGame && (
         <>
-          <canvas ref={canvasRef} style={{ zIndex: 1, position: "relative" }} />
+          <canvas
+            ref={canvasRef}
+            style={{
+              zIndex: 1,
+              position: "relative",
+              background: "transparent",
+            }}
+          />
           <LetterDisplay fadeOut={fadeOutLetters}>
             {hitCount > 0 && lettersVisible && (
               <a
