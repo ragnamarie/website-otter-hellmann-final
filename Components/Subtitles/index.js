@@ -25,7 +25,7 @@ const SubtitleContainerDesktop = styled.div`
 
 const SubtitleContainerMobile = styled.div`
   color: #e6331b;
-  font-size: 24px; /* bigger for mobile */
+  font-size: 24px;
   text-align: center;
   line-height: 1.5;
   width: 90%;
@@ -34,13 +34,13 @@ const SubtitleContainerMobile = styled.div`
   position: fixed;
   top: 50%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
 
   z-index: 900;
   transition: opacity 0.5s ease;
 
   @media (min-width: 951px) {
-    display: none; /* hide on desktop */
+    display: none;
   }
 `;
 
