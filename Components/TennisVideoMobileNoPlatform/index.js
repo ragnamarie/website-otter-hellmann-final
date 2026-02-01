@@ -35,7 +35,7 @@ export default function TennisVideoMobileNoPlatform({ muted }) {
   const canvasRef = useRef(null);
   const videoRef = useRef(null);
 
-  const ballRef = useRef({ x: 50, y: 50, vx: 1, vy: 1 });
+  const ballRef = useRef({ x: 50, y: 50, vx: 1.2, vy: 1.2 });
   const ballRadiusRef = useRef(40);
 
   const [hitCount, setHitCount] = useState(0);
@@ -83,7 +83,7 @@ export default function TennisVideoMobileNoPlatform({ muted }) {
     if (!video) return;
 
     const handleTimeUpdate = () => {
-      if (!triggeredRef.current && video.currentTime >= 88) {
+      if (!triggeredRef.current && video.currentTime >= 89) {
         triggeredRef.current = true;
         setStartGame(true);
       }
@@ -157,7 +157,7 @@ export default function TennisVideoMobileNoPlatform({ muted }) {
 
     /* 🎯 end animation */
     if (hitCountRef.current > 29) {
-      const targetRadius = isLandscape ? 6 : 3;
+      const targetRadius = isLandscape ? 8 : 4;
 
       if (ballRadiusRef.current > targetRadius) {
         ballRadiusRef.current -= 0.5;
@@ -166,8 +166,8 @@ export default function TennisVideoMobileNoPlatform({ muted }) {
         }
       }
 
-      const dotXRatio = isLandscape ? 0.59 : 0.56;
-      const dotYRatio = isLandscape ? 0.44 : 0.48;
+      const dotXRatio = isLandscape ? 0.57 : 0.56;
+      const dotYRatio = isLandscape ? 0.42 : 0.48;
 
       const centerX = canvas.width * dotXRatio;
       const centerY = canvas.height * dotYRatio;
