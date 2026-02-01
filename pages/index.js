@@ -14,7 +14,7 @@ export default function HomePage() {
     <>
       {/* Subtitles */}
       <div>
-        <Subtitles />
+        <Subtitles isMuted={isMuted}/>
       </div>
 
       {/* Page Content */}
