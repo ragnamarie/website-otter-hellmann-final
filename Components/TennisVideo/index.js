@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import styled, { keyframes } from "styled-components";
 
+const fadeOut = keyframes`
+  to {
+    opacity: 0;
+  }
+`;
+
 const LetterDisplay = styled.div`
   font-size: 4vw;
   color: #e6331b;
@@ -9,33 +15,35 @@ const LetterDisplay = styled.div`
   left: 50%;
   transform: translate(-50%, -50%);
   width: 100vw;
-  opacity: ${(props) => (props.fadeOut ? 0 : 1)};
-  animation: ${(props) => (props.fadeOut ? fadeOut : "none")} 1s forwards;
-  z-index: 2; /* ✅ put letters above canvas */
-  pointer-events: auto; /* ✅ allow clicks */
+  z-index: 2;
+
+  display: flex;
+  justify-content: center;
+  text-align: center;
 `;
 
-export default function TennisVideo() {
+export default function TennisVideo({ muted }) {
   const canvasRef = useRef(null);
   const ballRef = useRef({ x: 50, y: 50, vx: 3, vy: 3 });
   const platformRef = useRef({ x: 100 });
+
   const platformWidth = 180;
   const platformHeight = 30;
-
-  // ⭕ radius is dynamic now
   const ballRadiusRef = useRef(40);
 
   const [hitCount, setHitCount] = useState(0);
-  const [lettersVisible, setLettersVisible] = useState(true);
-  const [fadeOutLetters, setFadeOutLetters] = useState(false);
-  const [videoFinished, setVideoFinished] = useState(false);
+  const [lettersVisible] = useState(true);
+  const [fadeOutLetters] = useState(false);
   const [showMessage, setShowMessage] = useState(false);
   const [startGame, setStartGame] = useState(false);
 
   const letters = "the   art   of    be\u0131ng human      ";
+
   const hitCountRef = useRef(0);
   const pongSoundRef = useRef(null);
   const firstHitRef = useRef(false);
+  const triggeredRef = useRef(false);
+  const gameRunningRef = useRef(false);
 
   useEffect(() => {
     pongSoundRef.current = new Audio("/PONG.wav");
@@ -43,43 +51,51 @@ export default function TennisVideo() {
   }, []);
 
   function handleTrackpadMove(event) {
+    if (!gameRunningRef.current) return;
     event.preventDefault();
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
     const moveAmount = -event.deltaX;
     const newPlatformX = platformRef.current.x + moveAmount;
+
     platformRef.current.x = Math.max(
       0,
-      Math.min(newPlatformX, canvasRef.current.width - platformWidth)
+      Math.min(newPlatformX, canvas.width - platformWidth)
     );
   }
 
   function updateGame() {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
+    if (!gameRunningRef.current) return;
 
+    const canvas = canvasRef.current;
+    if (!canvas || canvas.width === 0) return;
+
+    const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    let newBall = ballRef.current;
-    newBall.x += newBall.vx;
-    newBall.y += newBall.vy;
+    const ball = ballRef.current;
+    ball.x += ball.vx;
+    ball.y += ball.vy;
 
     // Wall collisions
     if (
-      newBall.x - ballRadiusRef.current <= 0 ||
-      newBall.x + ballRadiusRef.current >= canvas.width
+      ball.x - ballRadiusRef.current <= 0 ||
+      ball.x + ballRadiusRef.current >= canvas.width
     ) {
-      newBall.vx *= -1;
+      ball.vx *= -1;
     }
-    if (newBall.y - ballRadiusRef.current <= 0 && newBall.y > 0) {
-      newBall.vy *= -1;
+    if (ball.y - ballRadiusRef.current <= 0 && ball.y > 0) {
+      ball.vy *= -1;
     }
-    if (newBall.y + ballRadiusRef.current >= canvas.height) {
-      newBall.vy *= -1;
+    if (ball.y + ballRadiusRef.current >= canvas.height) {
+      ball.vy *= -1;
     }
 
     const platformX = platformRef.current.x;
     const platformY = canvas.height - platformHeight - 100;
 
-    // Platform rectangle
     const platformRect = {
       x: platformX,
       y: platformY,
@@ -87,36 +103,31 @@ export default function TennisVideo() {
       height: platformHeight,
     };
 
-    // Circle–rectangle collision detection
     const closestX = Math.max(
       platformRect.x,
-      Math.min(newBall.x, platformRect.x + platformRect.width)
+      Math.min(ball.x, platformRect.x + platformRect.width)
     );
     const closestY = Math.max(
       platformRect.y,
-      Math.min(newBall.y, platformRect.y + platformRect.height)
+      Math.min(ball.y, platformRect.y + platformRect.height)
     );
 
-    const dx = newBall.x - closestX;
-    const dy = newBall.y - closestY;
+    const dx = ball.x - closestX;
+    const dy = ball.y - closestY;
     const distanceSquared = dx * dx + dy * dy;
 
     if (distanceSquared <= ballRadiusRef.current * ballRadiusRef.current) {
-      // Collision happened → decide bounce direction
       if (Math.abs(dx) > Math.abs(dy)) {
-        // Left / right collision
-        newBall.vx *= -1;
-        newBall.x += dx > 0 ? 5 : -5; // push ball out
+        ball.vx *= -1;
+        ball.x += dx > 0 ? 5 : -5;
       } else {
-        // Top / bottom collision
-        newBall.vy *= -1;
-        newBall.y += dy > 0 ? 5 : -5; // push ball out
+        ball.vy *= -1;
+        ball.y += dy > 0 ? 5 : -5;
 
-        // ✅ Only count hits if it's a TOP collision
-        if (dy < 0 && newBall.vy < 0) {
+        if (dy < 0 && ball.vy < 0) {
           if (!firstHitRef.current) {
-            newBall.vx *= 2;
-            newBall.vy *= 2;
+            ball.vx *= 2;
+            ball.vy *= 2;
             firstHitRef.current = true;
           }
 
@@ -125,110 +136,103 @@ export default function TennisVideo() {
             pongSoundRef.current.play().catch(() => {});
           }
 
-          setHitCount((prevCount) => {
-            const newCount = Math.min(prevCount + 6, letters.length);
-            hitCountRef.current = newCount;
-            return newCount;
+          setHitCount((prev) => {
+            const next = Math.min(prev + 6, letters.length);
+            hitCountRef.current = next;
+            return next;
           });
         }
       }
     }
 
-    // 🎯 Game Over behavior
+    // Final convergence logic
     if (hitCountRef.current > 29) {
-      // ⭕ Smooth shrink radius toward 13
       if (ballRadiusRef.current > 13) {
-        ballRadiusRef.current -= 0.5; // shrink speed
+        ballRadiusRef.current -= 0.5;
         if (ballRadiusRef.current < 13) ballRadiusRef.current = 13;
       }
 
-      const dotXRatio = 0.56;
-      const dotYRatio = 0.43;
-      const centerX = canvas.width * dotXRatio;
-      const centerY = canvas.height * dotYRatio;
+      const centerX = canvas.width * 0.56;
+      const centerY = canvas.height * 0.43;
 
-      const dx = centerX - newBall.x;
-      const dy = centerY - newBall.y;
+      const dx = centerX - ball.x;
+      const dy = centerY - ball.y;
       const speed = 0.03;
 
-      newBall.vx = dx * speed;
-      newBall.vy = dy * speed;
+      ball.vx = dx * speed;
+      ball.vy = dy * speed;
 
       if (Math.abs(dx) < 1 && Math.abs(dy) < 1) {
-        newBall.x = centerX;
-        newBall.y = centerY;
-        newBall.vx = 0;
-        newBall.vy = 0;
+        ball.x = centerX;
+        ball.y = centerY;
+        ball.vx = 0;
+        ball.vy = 0;
+        gameRunningRef.current = false; // 🛑 END GAME
       }
     }
 
-    // 🟠 Draw ball
+    // Draw
     ctx.fillStyle = "#e6331b";
     ctx.beginPath();
-    ctx.arc(newBall.x, newBall.y, ballRadiusRef.current, 0, Math.PI * 2);
+    ctx.arc(ball.x, ball.y, ballRadiusRef.current, 0, Math.PI * 2);
     ctx.fill();
 
-    // 🟠 Draw platform (red → white after game ends)
-    if (hitCountRef.current > 29) {
-      ctx.fillStyle = "#ffffff";
-    } else {
-      ctx.fillStyle = "#e6331b";
-    }
+    ctx.fillStyle = hitCountRef.current > 29 ? "#ffffff" : "#e6331b";
     ctx.fillRect(platformX, platformY, platformWidth, platformHeight);
 
     requestAnimationFrame(updateGame);
   }
 
-  const renderLetters = () => {
-    if (hitCount > 0 && lettersVisible) {
-      return <h1>{letters.substring(0, hitCount)}</h1>;
-    }
-    return null;
-  };
-
-  // Show "start to play" after video, then white screen, then start game
+  // 🎬 Trigger at 88s
   useEffect(() => {
-    if (!videoFinished) return;
+    const video = document.querySelector("video");
+    if (!video) return;
 
-    setShowMessage(true);
+    const onTimeUpdate = () => {
+      if (!triggeredRef.current && video.currentTime >= 88) {
+        triggeredRef.current = true;
+        setShowMessage(true);
 
-    const messageTimer = setTimeout(() => {
-      setShowMessage(false);
+        setTimeout(() => {
+          setShowMessage(false);
+          setStartGame(true);
+        }, 2000);
+      }
+    };
 
-      const whiteScreenTimer = setTimeout(() => {
-        setStartGame(true);
-      }, 1000);
+    video.addEventListener("timeupdate", onTimeUpdate);
+    return () => video.removeEventListener("timeupdate", onTimeUpdate);
+  }, []);
 
-      return () => clearTimeout(whiteScreenTimer);
-    }, 2000);
-
-    return () => clearTimeout(messageTimer);
-  }, [videoFinished]);
-
-  // Initialize game only after startGame is true
+  // 🎾 Init game (canvas already exists)
   useEffect(() => {
     if (!startGame) return;
 
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
     const resizeCanvas = () => {
-      const canvas = canvasRef.current;
-      if (canvas) {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        ballRef.current.x = canvas.width / 2;
-        ballRef.current.y = ballRadiusRef.current + 1;
-        platformRef.current.x = (canvas.width - platformWidth) / 2;
-      }
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      ballRef.current.x = canvas.width / 2;
+      ballRef.current.y = ballRadiusRef.current + 1;
+      platformRef.current.x = (canvas.width - platformWidth) / 2;
     };
 
     resizeCanvas();
 
-    if (canvasRef.current) {
+    gameRunningRef.current = true;
+
+    requestAnimationFrame(() => {
       requestAnimationFrame(updateGame);
-      window.addEventListener("resize", resizeCanvas);
-      window.addEventListener("wheel", handleTrackpadMove, { passive: false });
-    }
+    });
+
+    window.addEventListener("resize", resizeCanvas);
+    window.addEventListener("wheel", handleTrackpadMove, { passive: false });
 
     return () => {
+      gameRunningRef.current = false;
       window.removeEventListener("resize", resizeCanvas);
       window.removeEventListener("wheel", handleTrackpadMove);
     };
@@ -238,56 +242,73 @@ export default function TennisVideo() {
     <div
       style={{
         position: "relative",
-        textAlign: "center",
         width: "100vw",
         height: "100vh",
       }}
     >
-      {!videoFinished && (
-        <video
-          src="/Video.mp4"
-          autoPlay
-          muted
-          playsInline
-          onEnded={() => setVideoFinished(true)}
-          style={{ width: "100%", height: "100vh", objectFit: "cover" }}
-        />
-      )}
+      {/* Video */}
+      <video
+        src="/VideoWithSound.mp4"
+        autoPlay
+        muted={muted}
+        playsInline
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          zIndex: 0,
+        }}
+      />
 
+      {/* Start message */}
       {showMessage && (
         <div
           style={{
             position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
+            inset: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
             fontSize: "65px",
             color: "#e6331b",
+            zIndex: 3,
           }}
         >
           start to play
         </div>
       )}
 
-      {startGame && (
-        <>
-          <canvas ref={canvasRef} style={{ zIndex: 1, position: "relative" }} />
-          <LetterDisplay fadeOut={fadeOutLetters}>
-            {hitCount > 0 && lettersVisible && (
-              <a
-                href="https://meikeludwigs.com/about"
-                style={{
-                  textDecoration: "none",
-                  color: "#e6331b",
-                  cursor: "pointer",
-                }}
-              >
-                <h1>{letters.substring(0, hitCount)}</h1>
-              </a>
-            )}
-          </LetterDisplay>
-        </>
-      )}
+      {/* Canvas always mounted */}
+      <canvas
+        ref={canvasRef}
+        style={{
+          position: "absolute",
+          inset: 0,
+          zIndex: 1,
+          background: "transparent",
+          opacity: startGame ? 1 : 0,
+          pointerEvents: startGame ? "auto" : "none",
+          transition: "opacity 0.3s ease",
+        }}
+      />
+
+      {/* Letters */}
+      <LetterDisplay fadeOut={fadeOutLetters}>
+        {startGame && hitCount > 0 && lettersVisible && (
+          <a
+            href="https://meikeludwigs.com/about"
+            style={{
+              textDecoration: "none",
+              color: "#e6331b",
+              cursor: "pointer",
+            }}
+          >
+            <h1>{letters.substring(0, hitCount)}</h1>
+          </a>
+        )}
+      </LetterDisplay>
     </div>
   );
 }

@@ -25,7 +25,7 @@ const SubtitleContainerDesktop = styled.div`
 
 const SubtitleContainerMobile = styled.div`
   color: #e6331b;
-  font-size: 24px; /* bigger for mobile */
+  font-size: 24px;
   text-align: center;
   line-height: 1.5;
   width: 90%;
@@ -34,17 +34,17 @@ const SubtitleContainerMobile = styled.div`
   position: fixed;
   top: 50%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
 
   z-index: 900;
   transition: opacity 0.5s ease;
 
   @media (min-width: 951px) {
-    display: none; /* hide on desktop */
+    display: none;
   }
 `;
 
-export default function Subtitles() {
+export default function Subtitles({ isMuted }) {
   const subtitles = [
     "In a world of permanent stimulation, our minds are constantly under attack.",
     "Notifications never stop, social media feeds are endless, and agitation takes hold.",
@@ -67,7 +67,7 @@ export default function Subtitles() {
     "no time for emotions, expression, or assimilation.",
     "But there is another way,",
     "and it is time to step out of the hamster wheel.",
-    "In a society that makes us aggressively pursue more–",
+    "In a society that makes us aggressively pursue more –",
     "more success, more excitement, more validation.",
     "We should aim for less",
     "and reconnect with the present moment.",
@@ -75,10 +75,8 @@ export default function Subtitles() {
   ];
 
   const splitIndex = 10;
-
   const groupA = subtitles.slice(0, splitIndex);
   const groupB = subtitles.slice(splitIndex);
-
   const intervalA = 36500 / groupA.length;
   const intervalB = 38000 / groupB.length;
 
@@ -97,13 +95,11 @@ export default function Subtitles() {
 
       setTimeout(() => {
         setCurrentIndex((prev) => {
-          // Not yet at the last one → go to next
           if (prev < lastIndex) {
-            setVisible(true); // only fade back in if NOT the last one
+            setVisible(true);
             return prev + 1;
           }
 
-          // Last subtitle: fade out, then finish
           setTimeout(() => setFinished(true), 500);
           clearInterval(interval);
           return prev;
@@ -116,13 +112,16 @@ export default function Subtitles() {
 
   if (finished) return null;
 
+  // Here we combine current visibility and isMuted
+  const finalOpacity = visible && isMuted ? 1 : 0;
+
   return (
     <>
-      <SubtitleContainerDesktop style={{ opacity: visible ? 1 : 0 }}>
+      <SubtitleContainerDesktop style={{ opacity: finalOpacity }}>
         {subtitles[currentIndex]}
       </SubtitleContainerDesktop>
 
-      <SubtitleContainerMobile style={{ opacity: visible ? 1 : 0 }}>
+      <SubtitleContainerMobile style={{ opacity: finalOpacity }}>
         {subtitles[currentIndex]}
       </SubtitleContainerMobile>
     </>
