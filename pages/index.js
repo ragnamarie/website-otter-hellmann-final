@@ -14,7 +14,7 @@ export default function HomePage() {
     <>
       {/* Subtitles */}
       <div>
-        <Subtitles isMuted={isMuted}/>
+        <Subtitles isMuted={isMuted} />
       </div>
 
       {/* Page Content */}
@@ -33,11 +33,11 @@ export default function HomePage() {
           (window.top.location.href = "https://meikeludwigs.com/about/")
         }
       >
-        make it stop
+        MAKE IT STOP
       </div>
 
       <div className="bottom-right-link" onClick={toggleSound}>
-        {isMuted ? "sound?" : "subtitles?"}
+        {isMuted ? "SOUND ON" : "SOUND OFF"}
       </div>
 
       <style jsx>{`
@@ -75,10 +75,10 @@ export default function HomePage() {
           color: #e6331b;
           padding: 10px 20px;
           border-radius: 5px;
-          font-size: 65px;
           cursor: pointer;
           z-index: 1000;
           user-select: none;
+          font-family: Helvetica, Arial, sans-serif;
         }
 
         .top-right-link:hover {
@@ -93,10 +93,10 @@ export default function HomePage() {
           color: #e6331b;
           padding: 10px 20px;
           border-radius: 5px;
-          font-size: 65px;
           cursor: pointer;
           z-index: 1000;
           user-select: none;
+          font-family: Helvetica, Arial, sans-serif;
         }
 
         .bottom-right-link:hover {
@@ -114,10 +114,10 @@ export default function HomePage() {
 
         @media (min-width: 951px) {
           .top-right-link {
-            font-size: 65px;
+            font-size: 38px;
           }
           .bottom-right-link {
-            font-size: 65px;
+            font-size: 38px;
           }
         }
       `}</style>
