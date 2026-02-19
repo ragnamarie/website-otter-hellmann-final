@@ -248,7 +248,7 @@ export default function TennisVideo({ muted }) {
     >
       {/* Video */}
       <video
-        src="/VideoWithSound.mp4"
+        src="https://ohs0219-2026.web.app/VideoWithSound.mp4"
         autoPlay
         muted={muted}
         playsInline

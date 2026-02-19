@@ -3,7 +3,7 @@ import styled from "styled-components";
 
 const SubtitleContainerDesktop = styled.div`
   color: #e6331b;
-  font-size: 2vw;
+  font-size: 38px;
   text-align: center;
   line-height: 1.6;
   max-width: 90%;

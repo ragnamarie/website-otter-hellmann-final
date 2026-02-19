@@ -206,7 +206,7 @@ export default function TennisVideoMobileNoPlatform({ muted }) {
       {/* 🎥 video always visible */}
       <Video
         ref={videoRef}
-        src="/VideoWithSound.mp4"
+        src="https://ohs0219-2026.web.app/VideoWithSound.mp4"
         autoPlay
         muted={muted}
         playsInline
