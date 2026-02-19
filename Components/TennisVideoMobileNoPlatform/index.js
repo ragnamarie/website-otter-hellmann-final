@@ -198,8 +198,8 @@ export default function TennisVideoMobileNoPlatform({ muted }) {
     <div
       style={{
         position: "relative",
-        width: "100vw",
-        height: "100vh",
+        width: "100%",
+        height: "100vh", // full viewport height
         overflow: "hidden",
       }}
     >
@@ -208,8 +208,19 @@ export default function TennisVideoMobileNoPlatform({ muted }) {
         ref={videoRef}
         src="https://ohs0219-2026.web.app/VideoWithSound.mp4"
         autoPlay
+        preload="auto"
         muted={muted}
         playsInline
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          zIndex: 0,
+          willChange: "transform", // GPU hint for smoother rendering
+          backfaceVisibility: "hidden", // GPU optimization
+        }}
       />
 
       {/* 🎮 canvas always mounted (no flicker) */}

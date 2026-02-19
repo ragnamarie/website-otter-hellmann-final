@@ -33,11 +33,11 @@ export default function HomePage() {
           (window.top.location.href = "https://meikeludwigs.com/about/")
         }
       >
-        MAKE IT STOP
+        make it stop
       </div>
 
       <div className="bottom-right-link" onClick={toggleSound}>
-        {isMuted ? "SOUND ON" : "SOUND OFF"}
+        {isMuted ? "sound on" : "sound off"}
       </div>
 
       <style jsx>{`
@@ -78,7 +78,6 @@ export default function HomePage() {
           cursor: pointer;
           z-index: 1000;
           user-select: none;
-          font-family: Helvetica, Arial, sans-serif;
         }
 
         .top-right-link:hover {
@@ -96,7 +95,6 @@ export default function HomePage() {
           cursor: pointer;
           z-index: 1000;
           user-select: none;
-          font-family: Helvetica, Arial, sans-serif;
         }
 
         .bottom-right-link:hover {
