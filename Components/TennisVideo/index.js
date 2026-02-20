@@ -250,7 +250,6 @@ export default function TennisVideo({ muted }) {
       <video
         src="/VideoWithSound.mp4"
         autoPlay
-        preload="auto"
         muted={muted}
         playsInline
         style={{

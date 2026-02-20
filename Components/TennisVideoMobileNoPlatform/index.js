@@ -207,7 +207,6 @@ export default function TennisVideoMobileNoPlatform({ muted }) {
         ref={videoRef}
         src="/VideoWithSound.mp4"
         autoPlay
-        preload="auto"
         muted={muted}
         playsInline
         style={{
