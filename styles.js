@@ -100,8 +100,7 @@ export default createGlobalStyle`
   }
 
   main {
-    background-color: white;
-    background-size: cover; /* Ensures the image covers the entire background */
+    background-size: cover !important; /* Ensures the image covers the entire background */
   }
 
   footer {
