@@ -1,32 +1,74 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import TennisVideo from "@/Components/TennisVideo";
 import TennisVideoMobileNoPlatform from "@/Components/TennisVideoMobileNoPlatform";
 import Subtitles from "@/Components/Subtitles";
 
 export default function HomePage() {
-  // State to control sound
   const [isMuted, setIsMuted] = useState(true);
+  const [startGame, setStartGame] = useState(false);
+  const [showMessage, setShowMessage] = useState(false);
 
-  // Toggle function
+  const videoRef = useRef(null);
+  const triggeredRef = useRef(false);
+
   const toggleSound = () => setIsMuted((prev) => !prev);
+
+  // 🎬 Trigger at 88s (desktop shows message, mobile doesn't)
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const onTimeUpdate = () => {
+      if (!triggeredRef.current && video.currentTime >= 88) {
+        triggeredRef.current = true;
+
+        // Show message (desktop only visually)
+        setShowMessage(true);
+
+        setTimeout(() => {
+          setShowMessage(false);
+          setStartGame(true);
+        }, 2000);
+      }
+    };
+
+    video.addEventListener("timeupdate", onTimeUpdate);
+    return () => video.removeEventListener("timeupdate", onTimeUpdate);
+  }, []);
 
   return (
     <>
       {/* Subtitles */}
-      <div>
-        <Subtitles isMuted={isMuted} />
-      </div>
+      <Subtitles isMuted={isMuted} />
 
-      {/* Page Content */}
+      {/* 🎥 Video (NOW ONLY HERE) */}
+      <video
+        ref={videoRef}
+        src="/VideoWithSound.mp4"
+        autoPlay
+        muted={isMuted}
+        playsInline
+        style={{
+          position: "fixed",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          zIndex: 0,
+        }}
+      />
+
+      {/* Desktop Game */}
       <div className="desktop-only">
-        <TennisVideo muted={isMuted} />
+        <TennisVideo startGame={startGame} showMessage={showMessage} />
       </div>
 
+      {/* Mobile Game */}
       <div className="mobile-only">
-        <TennisVideoMobileNoPlatform muted={isMuted} />
+        <TennisVideoMobileNoPlatform startGame={startGame} />
       </div>
 
-      {/* Top and Bottom right links */}
+      {/* Top right */}
       <div
         className="top-right-link"
         onClick={() =>
@@ -36,6 +78,7 @@ export default function HomePage() {
         make it stop
       </div>
 
+      {/* Bottom right */}
       <div className="bottom-right-link" onClick={toggleSound}>
         {isMuted ? "sound on" : "sound off"}
       </div>
@@ -44,17 +87,14 @@ export default function HomePage() {
         .desktop-only {
           display: none;
           position: fixed;
+          inset: 0;
+          z-index: 1;
         }
 
         .mobile-only {
           position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          object-fit: cover;
-          width: 100%;
-          height: 100%;
+          inset: 0;
+          z-index: 1;
         }
 
         @media (max-width: 950px) {
@@ -75,34 +115,28 @@ export default function HomePage() {
           }
         }
 
-        /* Top-right link */
         .top-right-link {
           position: fixed;
           top: 20px;
           right: 20px;
           color: #e6331b;
           padding: 10px 20px;
-          border-radius: 5px;
           cursor: pointer;
           z-index: 1000;
-          user-select: none;
         }
 
         .top-right-link:hover {
           color: #ed705f;
         }
 
-        /* Bottom-right link (sound toggle) */
         .bottom-right-link {
           position: fixed;
           bottom: 20px;
           right: 20px;
           color: #e6331b;
           padding: 10px 20px;
-          border-radius: 5px;
           cursor: pointer;
           z-index: 1000;
-          user-select: none;
         }
 
         .bottom-right-link:hover {
@@ -110,18 +144,14 @@ export default function HomePage() {
         }
 
         @media (max-width: 950px) {
-          .top-right-link {
-            font-size: 30px;
-          }
+          .top-right-link,
           .bottom-right-link {
             font-size: 30px;
           }
         }
 
         @media (min-width: 951px) {
-          .top-right-link {
-            font-size: 38px;
-          }
+          .top-right-link,
           .bottom-right-link {
             font-size: 38px;
           }
