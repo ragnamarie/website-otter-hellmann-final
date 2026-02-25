@@ -24,6 +24,7 @@ const LetterDisplay = styled.div`
 
 export default function TennisVideo({ muted }) {
   const canvasRef = useRef(null);
+  const videoRef = useRef(null);
   const ballRef = useRef({ x: 50, y: 50, vx: 3, vy: 3 });
   const platformRef = useRef({ x: 100 });
 
@@ -185,7 +186,7 @@ export default function TennisVideo({ muted }) {
 
   // 🎬 Trigger at 88s
   useEffect(() => {
-    const video = document.querySelector("video");
+    const video = videoRef.current;
     if (!video) return;
 
     const onTimeUpdate = () => {
@@ -250,6 +251,7 @@ export default function TennisVideo({ muted }) {
       <video
         src="/VideoWithSound.mp4"
         autoPlay
+        ref={videoRef}
         muted={muted}
         playsInline
         style={{
